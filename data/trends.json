@@ -1,0 +1,64 @@
+[
+  {
+    "id": "sony-single",
+    "title": "Sony Single Image 2026",
+    "years": "2026",
+    "sampleLabel": "カテゴリー受賞・ショートリスト100点超を公式掲載",
+    "kind": "公式基準 + 公開アーカイブ",
+    "summary": "単写真をカテゴリー別に読み比べられる大規模な公式ギャラリー。公式要項では、構図・創造性・明瞭さが審査観点として示されています。",
+    "observations": ["一枚で成立する強さ", "カテゴリーごとの読み分け", "受賞作とショートリストを分けて確認可能"],
+    "works": [
+      {"title": "The Barefoot Volcanologist", "author": "Elle Leontiev", "award": "Open Photographer of the Year"},
+      {"title": "2026 Category Winners & Shortlists", "author": "100点超の公式選出", "award": "年度別ギャラリー"}
+    ],
+    "url": "https://www.worldphoto.org/sony-world-photography-awards/winners-galleries/2026/overall-winners-2026",
+    "verifiedAt": "2026-07-22"
+  },
+  {
+    "id": "tifa",
+    "title": "TIFA 2025",
+    "years": "2025",
+    "sampleLabel": "総合2作品 + 部門別公式アーカイブ",
+    "kind": "受賞メタデータ + 公式ギャラリー",
+    "summary": "ProfessionalとNon-Professionalを分けたうえで、広告・建築・ファインアート・自然・人物・スペシャルなど幅広い部門を掲載しています。",
+    "observations": ["プロと非プロを別審査", "単写真と2〜10枚のシリーズ", "過去受賞作も応募可能"],
+    "works": [
+      {"title": "Stolen Spring", "author": "Alena Grom", "award": "2025 Photographer of the Year"},
+      {"title": "The Art of The Ideal Deal", "author": "Yi Han & Yaorong Lu", "award": "2025 Discovery of the Year"}
+    ],
+    "url": "https://www.tokyofotoawards.jp/winners/tokyo/2025/",
+    "verifiedAt": "2026-07-22"
+  },
+  {
+    "id": "nikon",
+    "title": "Nikon Film and Photo Contest 2024–2025",
+    "years": "2024–2025",
+    "sampleLabel": "写真部門の受賞13作品を公式掲載",
+    "kind": "受賞作 + 受賞者インタビュー",
+    "summary": "Single PhotoとPhoto Storyを分け、テーマ「Inspire」への応答を一枚と連作の両方から確認できます。受賞者インタビューも作品理解の手掛かりになります。",
+    "observations": ["単写真と2〜5枚の物語を分離", "作品タイトルと作者を年度別に保存", "一部受賞者の制作背景をインタビューで確認可能"],
+    "works": [
+      {"title": "Jonas", "author": "Tiina Itkonen", "award": "Single Photo Grand Prize"},
+      {"title": "Farewell-able", "author": "Lei Yang", "award": "Photo Story Grand Prize"},
+      {"title": "Kite Festival", "author": "Andre Ferreira", "award": "Excellence Award"}
+    ],
+    "url": "https://www.nikon-photocontest.com/en/photo/winners/2024_2025/",
+    "verifiedAt": "2026-07-22"
+  },
+  {
+    "id": "jps",
+    "title": "2026 JPS展",
+    "years": "2026",
+    "sampleLabel": "入賞・入選397枚を公式発表",
+    "kind": "受賞結果 + 作品形式",
+    "summary": "上位賞だけでも単写真と3〜5枚の組写真が混在しています。オンライン公募とは異なる、プリント応募と展示を前提にした選考の見方を確認できます。",
+    "observations": ["単写真と組写真が同じ展覧会で並ぶ", "作品形式を受賞結果から確認可能", "生成AI作品は応募不可"],
+    "works": [
+      {"title": "Last Performance", "author": "丸山 禎子", "award": "文部科学大臣賞・3枚組"},
+      {"title": "帰郷", "author": "塩野 いくお", "award": "東京都知事賞・5枚組"},
+      {"title": "最果て", "author": "中村 和貴", "award": "銀賞・単写真"}
+    ],
+    "url": "https://www.jps.gr.jp/2026jpsten_winner/",
+    "verifiedAt": "2026-07-22"
+  }
+]
