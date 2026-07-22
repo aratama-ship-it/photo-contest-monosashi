@@ -3,9 +3,13 @@ import { readFile } from "node:fs/promises";
 
 const dataUrl = new URL("../data/opportunities.json", import.meta.url);
 const worldwideDataUrl = new URL("../data/worldwide-opportunities.json", import.meta.url);
+const socialDataUrl = new URL("../data/social-opportunities.json", import.meta.url);
+const discoveryDataUrl = new URL("../data/discovery-channels.json", import.meta.url);
 const baseOpportunities = JSON.parse(await readFile(dataUrl, "utf8"));
 const worldwideOpportunities = JSON.parse(await readFile(worldwideDataUrl, "utf8"));
-const opportunities = [...baseOpportunities, ...worldwideOpportunities];
+const socialOpportunities = JSON.parse(await readFile(socialDataUrl, "utf8"));
+const discoveryChannels = JSON.parse(await readFile(discoveryDataUrl, "utf8"));
+const opportunities = [...baseOpportunities, ...worldwideOpportunities, ...socialOpportunities];
 
 const evidenceKeys = [
   "deadline",
@@ -25,6 +29,14 @@ const evidenceStates = new Set([
   "not_stated",
   "not_researched",
 ]);
+const discoveryEvidenceKeys = ["cadence", "method", "rights", "selection", "visibility"];
+const discoveryEvidenceStates = new Set([
+  "explicit",
+  "conditional",
+  "not_stated",
+  "not_researched",
+  "not_applicable",
+]);
 const officialHosts = new Set([
   "www.worldphoto.org",
   "www.tokyofotoawards.jp",
@@ -34,12 +46,29 @@ const officialHosts = new Set([
   "budapestfotoawards.com",
   "fineartphotoawards.com",
   "hipa.ae",
+  "www.vogue.in",
+  "www.apec.org",
+]);
+const discoveryOfficialHosts = new Set([
+  "www.nationalgeographic.com",
+  "www.vogue.com",
+  "www.worldphotographyweek.com",
+  "www.oppo.com",
+  "www.photocrowd.com",
 ]);
 
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
 assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
-assert.equal(opportunities.length, 27, "expected 27 independently selectable entry routes");
+assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
+assert.equal(discoveryChannels.length, 5, "expected 5 rolling discovery channels");
+assert.equal(opportunities.length, 29, "expected 29 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
+assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
+assert.equal(
+  new Set([...opportunities, ...discoveryChannels].map((item) => item.id)).size,
+  opportunities.length + discoveryChannels.length,
+  "entry-route and discovery-channel IDs must not overlap",
+);
 
 for (const item of opportunities) {
   assert.equal(item.verifiedAt, "2026-07-23", `${item.id}: verification date is stale`);
@@ -49,6 +78,15 @@ for (const item of opportunities) {
   assert.ok(Object.values(item.evidence).every((state) => evidenceStates.has(state)), `${item.id}: unsupported evidence state`);
   assert.equal(typeof item.categorySelectionRequired, "boolean", `${item.id}: category-selection state must be explicit`);
   assert.ok(["explicit", "needs_check"].includes(item.rightsPolicy), `${item.id}: rights policy must be fail-closed`);
+}
+
+for (const item of discoveryChannels) {
+  assert.equal(item.verifiedAt, "2026-07-23", `${item.id}: discovery verification date is stale`);
+  assert.ok(discoveryOfficialHosts.has(new URL(item.sourceUrl).host), `${item.id}: discovery source is not an audited official host`);
+  assert.deepEqual(Object.keys(item.evidence).sort(), discoveryEvidenceKeys, `${item.id}: discovery evidence cells are incomplete`);
+  assert.ok(Object.values(item.evidence).every((state) => discoveryEvidenceStates.has(state)), `${item.id}: unsupported discovery evidence state`);
+  assert.ok(Array.isArray(item.platforms) && item.platforms.length > 0, `${item.id}: discovery platform must be explicit`);
+  assert.ok(Array.isArray(item.checklist) && item.checklist.length > 0, `${item.id}: discovery checklist must not be empty`);
 }
 
 assert.ok(
@@ -99,17 +137,51 @@ const hipa = opportunities.find((item) => item.id === "hipa-determination-2026")
 assert.equal(hipa?.feeType, "unknown", "HIPA fee must not be guessed as free");
 assert.equal(hipa?.evidence.technical, "conditional", "HIPA JPEG/RAW wording needs a conditional technical state");
 
+const photoVogue = opportunities.find((item) => item.id === "photovogue-global-open-call-2026");
+assert.equal(photoVogue?.opportunityKind, "open_call", "PhotoVogue must be described as an open call, not a prize contest");
+assert.equal(photoVogue?.submissionMethod, "platform_upload", "PhotoVogue must keep its Picter submission method");
+assert.equal(photoVogue?.seriesMax, 15, "PhotoVogue accepts a project of up to 15 items");
+assert.equal(photoVogue?.feeType, "free", "PhotoVogue official announcement states free entry");
+assert.equal(photoVogue?.applicantScope, "worldwide", "PhotoVogue is open worldwide");
+
+const apec = opportunities.find((item) => item.id === "apec-main-influencer-2026");
+assert.equal(apec?.deadline, "2026-09-06T15:59:00Z", "APEC deadline must preserve the official SGT conversion");
+assert.equal(apec?.applicantScope, "limited", "APEC must not be described as worldwide");
+assert.deepEqual(apec?.eligibleResidenceGroups, ["japan", "other_apec"], "APEC eligibility must include Japan and other APEC economies only");
+assert.equal(apec?.submissionMethod, "hybrid", "APEC must distinguish the official submission from its Instagram extension");
+assert.equal(apec?.socialExtension, true, "APEC Influencer Award is a social extension");
+assert.equal(apec?.requiresPublicSocial, true, "APEC Influencer Award requires public visibility");
+assert.equal(apec?.feeType, "unknown", "APEC fee must not be guessed");
+assert.equal(apec?.priorAwardPolicy, "not_allowed", "APEC excludes previously submitted contest photos");
+assert.equal(apec?.simultaneousPolicy, "not_allowed", "APEC excludes photos submitted to other contests");
+
+const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
+assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
+assert.equal(natGeo?.publicAccount, "required", "NatGeo Your Shot requires a public account");
+const photoVogueMonday = discoveryChannels.find((item) => item.id === "photovogue-monday-projects");
+assert.ok(photoVogueMonday?.requiredTags.includes("#PhotoVogueMonday"), "PhotoVogue Monday must preserve the official hashtag");
+const photocrowd = discoveryChannels.find((item) => item.id === "photocrowd-open-contests");
+assert.match(photocrowd?.warning ?? "", /固定公募ではなく探索先/, "Photocrowd must remain a rolling discovery channel");
+
 const evidence = opportunities.flatMap((item) => Object.values(item.evidence));
 const coverage = evidence.filter((state) => state === "explicit" || state === "conditional").length;
 const deadlineWarnings = opportunities.filter((item) => ["conflict", "date_only"].includes(item.evidence.deadline)).length;
 const unknownCells = evidence.filter((state) => state === "not_stated" || state === "not_researched").length;
+const submissionMethods = socialOpportunities.reduce((counts, item) => {
+  counts[item.submissionMethod] = (counts[item.submissionMethod] ?? 0) + 1;
+  return counts;
+}, {});
 
 console.log(JSON.stringify({
   routes: opportunities.length,
   worldwideAdded: worldwideOpportunities.length,
+  socialDeadlineRoutes: socialOpportunities.length,
+  discoveryChannels: discoveryChannels.length,
   explicitWorldwideRoutes: opportunities.filter((item) => item.applicantScope === "worldwide").length,
   organizerRegions: [...new Set(worldwideOpportunities.map((item) => item.organizerRegion))].sort(),
   officialSources: new Set(opportunities.map((item) => item.sourceUrl)).size,
+  discoveryOfficialSources: new Set(discoveryChannels.map((item) => item.sourceUrl)).size,
+  submissionMethods,
   evidenceCoverage: `${coverage}/${evidence.length}`,
   evidenceCoveragePercent: Number((coverage / evidence.length * 100).toFixed(1)),
   deadlineWarnings,

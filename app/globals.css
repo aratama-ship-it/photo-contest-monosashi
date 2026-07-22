@@ -673,6 +673,9 @@ summary:focus-visible {
 .result-titleline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .result-titleline p { margin: 0 0 3px; color: var(--ink-soft); font-size: 10px; font-weight: 650; letter-spacing: 0.04em; }
 .result-titleline h3 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: clamp(19px, 2vw, 25px); font-weight: 600; }
+.submission-badge { display: inline-flex; max-width: 100%; margin-top: 10px; border: 1px solid var(--line-dark); color: var(--ink-soft); font-size: 9px; line-height: 1.45; }
+.submission-badge > b { padding: 5px 7px; border-left: 1px solid var(--line-dark); color: var(--ink); font-weight: 650; }
+.submission-badge::first-line { color: var(--safe-dark); }
 .verdict-label { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 5px 8px; border: 1px solid currentColor; font-size: 10px; font-weight: 800; }
 .verdict-eligible .verdict-label { color: var(--green); }
 .verdict-needs_check .verdict-label { color: var(--yellow); }
@@ -715,6 +718,32 @@ summary:focus-visible {
 .result-actions a span { color: var(--ink); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 13px; }
 .result-actions a small { color: var(--ink-soft); font-size: 8px; font-weight: 500; }
 .result-actions .trend-jump { min-height: 42px; margin-top: auto; border-bottom: 0; color: var(--safe-dark); font-size: 9px; }
+
+.channels-section { width: min(1260px, calc(100% - 40px)); margin: 0 auto; padding: 100px 0 110px; }
+.channel-key { display: grid; margin: -16px 0 32px; border-top: 1px solid var(--line-dark); border-left: 1px solid var(--line-dark); grid-template-columns: repeat(3, 1fr); }
+.channel-key span { min-height: 58px; padding: 11px 14px; border-right: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); color: var(--ink-soft); font-size: 9px; line-height: 1.65; }
+.channel-key b { display: block; margin-bottom: 2px; color: var(--ink); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 12px; }
+.channel-grid { display: grid; border-top: 1px solid var(--line-dark); border-left: 1px solid var(--line-dark); grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.channel-card { position: relative; min-width: 0; padding: 27px clamp(20px, 3vw, 36px) 25px; border-right: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); background: rgba(255, 253, 246, 0.36); }
+.channel-card::after { position: absolute; top: 0; right: 0; width: 40px; height: 8px; background: repeating-linear-gradient(90deg, var(--line-dark) 0 1px, transparent 1px 8px); content: ""; opacity: 0.55; }
+.channel-number { margin-bottom: 17px; color: var(--safe-dark); font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.12em; }
+.channel-titleline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.channel-titleline p { margin: 0 0 4px; color: var(--ink-soft); font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
+.channel-titleline h3 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: clamp(20px, 2.1vw, 27px); font-weight: 550; line-height: 1.35; }
+.channel-titleline > span { flex: 0 0 auto; padding: 5px 7px; border: 1px solid var(--safe-dark); color: var(--safe-dark); font-size: 8px; font-weight: 750; }
+.channel-card dl { display: grid; margin: 23px 0 15px; border-top: 1px solid var(--line); }
+.channel-card dl > div { display: grid; min-height: 42px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); grid-template-columns: 66px 1fr; gap: 10px; }
+.channel-card dt { color: var(--ink-soft); font-size: 8px; font-weight: 800; letter-spacing: 0.06em; }
+.channel-card dd { margin: 0; font-size: 10px; line-height: 1.65; }
+.channel-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 15px 0; }
+.channel-tags code { padding: 4px 6px; border-left: 2px solid var(--blue); background: rgba(65, 97, 114, 0.08); color: var(--blue); font-family: ui-monospace, monospace; font-size: 9px; overflow-wrap: anywhere; }
+.channel-card > ul { display: grid; gap: 6px; margin: 16px 0; padding: 0; list-style: none; }
+.channel-card > ul li { position: relative; padding-left: 15px; color: var(--ink-soft); font-size: 10px; line-height: 1.65; }
+.channel-card > ul li::before { position: absolute; top: 0; left: 0; color: var(--safe-dark); content: "□"; }
+.channel-warning { margin: 16px 0 0; padding: 11px 12px; border-left: 3px solid var(--yellow); background: rgba(169, 109, 25, 0.07); color: #6e5022; font-size: 9px; line-height: 1.7; }
+.channel-foot { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-top: 20px; padding-top: 13px; border-top: 1px dashed var(--line); }
+.channel-foot span { color: var(--ink-soft); font-family: ui-monospace, monospace; font-size: 8px; line-height: 1.5; }
+.channel-foot a { flex: 0 0 auto; color: var(--safe-dark); font-size: 10px; font-weight: 750; text-underline-offset: 3px; }
 
 .trend-section {
   padding: 90px max(20px, calc((100vw - 1260px) / 2)) 105px;
@@ -852,6 +881,8 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .result-index { padding: 20px 5px; font-size: 9px; }
   .result-main { padding: 20px 13px 22px; }
   .result-titleline { display: block; }
+  .submission-badge { display: grid; width: fit-content; }
+  .submission-badge > b { border-top: 1px solid var(--line-dark); border-left: 0; }
   .verdict-label { margin-top: 12px; }
   .result-facts { grid-template-columns: 1fr; }
   .result-facts > div { min-height: 52px; }
@@ -860,6 +891,12 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .result-actions button,
   .result-actions a { flex: 1 1 45%; min-height: 54px; }
   .result-actions .trend-jump { flex-basis: 100%; border-top: 1px solid var(--line); }
+  .channels-section { width: min(100% - 28px, 620px); padding: 72px 0 82px; }
+  .channel-key,
+  .channel-grid { grid-template-columns: 1fr; }
+  .channel-titleline { display: block; }
+  .channel-titleline > span { display: inline-block; margin-top: 11px; }
+  .channel-foot { align-items: flex-start; flex-direction: column; gap: 10px; }
   .trend-section { padding: 72px 14px 82px; }
   .trend-grid { grid-template-columns: 1fr; }
   .contact-strip { height: 130px; }
@@ -897,5 +934,6 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   body { background: white; }
   .hero,
   .passport-section,
-  .results-section { width: 100%; }
+  .results-section,
+  .channels-section { width: 100%; }
 }

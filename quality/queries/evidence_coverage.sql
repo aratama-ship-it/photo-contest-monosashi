@@ -1,6 +1,10 @@
 WITH opportunities AS (
   SELECT *
-  FROM read_json_auto(['data/opportunities.json', 'data/worldwide-opportunities.json'])
+  FROM read_json_auto([
+    'data/opportunities.json',
+    'data/worldwide-opportunities.json',
+    'data/social-opportunities.json'
+  ])
 ), evidence_cells AS (
   SELECT id, unnest([
     evidence.deadline,

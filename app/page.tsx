@@ -3,6 +3,8 @@
 import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import opportunityData from "@/data/opportunities.json";
 import worldwideOpportunityData from "@/data/worldwide-opportunities.json";
+import socialOpportunityData from "@/data/social-opportunities.json";
+import discoveryChannelData from "@/data/discovery-channels.json";
 import trendData from "@/data/trends.json";
 
 type Subject =
@@ -35,6 +37,9 @@ type Profile = {
   ownsRights: "unknown" | "yes" | "no";
   peoplePermission: "unknown" | "yes" | "no" | "not_applicable";
   feePreference: "any" | "free";
+  residence: "unknown" | "japan" | "other_apec" | "other";
+  socialEntry: "unknown" | "yes" | "no";
+  publicSocialAccount: "unknown" | "yes" | "no";
 };
 
 type EvidenceState = "explicit" | "conditional" | "conflict" | "date_only" | "not_stated" | "not_researched";
@@ -54,7 +59,21 @@ type Opportunity = {
   organizerRegion?: string;
   organizerCountry?: string;
   applicantScope?: "worldwide" | "limited" | "unknown";
+  applicantScopeLabel?: string;
+  eligibleFromJapan?: boolean;
+  eligibleResidenceGroups?: string[];
   entryLanguage?: string;
+  opportunityKind?: "contest" | "open_call" | "challenge" | "curation";
+  submissionMethod?: "web_form" | "platform_upload" | "hashtag" | "email" | "hybrid";
+  submissionLabel?: string;
+  socialExtension?: boolean;
+  socialPostingRequired?: boolean;
+  requiresPublicSocial?: boolean;
+  requiresFollow?: boolean;
+  requiredAccountTag?: string;
+  requiredTags?: string[];
+  entryLimit?: number;
+  shotLocationRule?: string;
   entrantRole: "all" | "professional" | "nonprofessional";
   entrantAge: "all" | "adult" | "youth";
   minAge?: number;
@@ -105,6 +124,28 @@ type Trend = {
   verifiedAt: string;
 };
 
+type DiscoveryChannel = {
+  id: string;
+  title: string;
+  organizer: string;
+  kind: string;
+  cadence: string;
+  submissionLabel: string;
+  platforms: string[];
+  requiredTags: string[];
+  requiredAccountTag?: string;
+  publicAccount: "required" | "required_for_hashtag" | "required_for_gallery_visibility" | "not_stated" | "not_applicable";
+  feeLabel: string;
+  outcome: string;
+  subjects: string[];
+  checklist: string[];
+  evidence: Record<string, string>;
+  sourceUrl: string;
+  sourceLabel: string;
+  verifiedAt: string;
+  warning: string;
+};
+
 type PhotoInfo = {
   name: string;
   url: string;
@@ -131,7 +172,8 @@ type Assessment = {
   preferenceMiss: boolean;
 };
 
-const opportunities = [...opportunityData, ...worldwideOpportunityData] as Opportunity[];
+const opportunities = [...opportunityData, ...worldwideOpportunityData, ...socialOpportunityData] as Opportunity[];
+const discoveryChannels = discoveryChannelData as DiscoveryChannel[];
 const trends = trendData as Trend[];
 const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
@@ -167,12 +209,22 @@ const defaultProfile: Profile = {
   ownsRights: "unknown",
   peoplePermission: "unknown",
   feePreference: "any",
+  residence: "unknown",
+  socialEntry: "unknown",
+  publicSocialAccount: "unknown",
 };
 
 const verdictMeta: Record<Verdict, { label: string; mark: string }> = {
   eligible: { label: "確認範囲で不一致なし", mark: "○" },
   needs_check: { label: "要確認", mark: "△" },
   ineligible: { label: "明示条件に不一致", mark: "×" },
+};
+
+const opportunityKindLabels: Record<NonNullable<Opportunity["opportunityKind"]>, string> = {
+  contest: "賞・コンテスト",
+  open_call: "キュレーション公募",
+  challenge: "チャレンジ",
+  curation: "掲載キュレーション",
 };
 
 function normalizeProfile(value: Partial<Profile>): Profile {
@@ -216,7 +268,34 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
   if (opportunity.applicantScope === "worldwide") {
     add("pass", "応募地域", `居住国を限定しない世界公募（応募言語: ${opportunity.entryLanguage ?? "公式要項で確認"}）`);
   } else if (opportunity.applicantScope === "limited") {
-    add("check", "応募地域", "居住地・国籍の制限を公式要項で確認してください");
+    const eligibleGroups = opportunity.eligibleResidenceGroups ?? (opportunity.eligibleFromJapan ? ["japan"] : []);
+    if (profile.residence === "unknown") {
+      add("check", "応募地域", `${opportunity.applicantScopeLabel ?? "居住地・国籍に制限あり"}。居住・市民権の範囲を回答してください`);
+    } else if (eligibleGroups.includes(profile.residence)) {
+      add("pass", "応募地域", opportunity.applicantScopeLabel ?? "回答した地域は対象範囲内");
+    } else {
+      add("fail", "応募地域", opportunity.applicantScopeLabel ?? "回答した地域は対象範囲外");
+    }
+  }
+
+  if (opportunity.submissionMethod === "hashtag" && opportunity.socialPostingRequired !== false) {
+    if (profile.socialEntry === "unknown") {
+      add("check", "SNS投稿応募", "ハッシュタグ投稿を使えるか未回答");
+    } else if (profile.socialEntry === "no") {
+      add("fail", "SNS投稿応募", "SNSの公開投稿が必須の応募方式です");
+    } else if (opportunity.requiresPublicSocial && profile.publicSocialAccount !== "yes") {
+      add(profile.publicSocialAccount === "no" ? "fail" : "check", "公開アカウント", "主催者が投稿を確認できる公開アカウントが必要です");
+    } else {
+      add("pass", "SNS投稿応募", `${opportunity.submissionLabel ?? "ハッシュタグ投稿"}を使えると回答`);
+    }
+  } else if (opportunity.socialExtension) {
+    if (profile.socialEntry === "yes" && opportunity.requiresPublicSocial && profile.publicSocialAccount !== "yes") {
+      add("check", "SNS追加枠", "本賞はフォームで応募できますが、追加賞には公開アカウントが必要です");
+    } else if (profile.socialEntry === "yes") {
+      add("prepare", "SNS追加枠", `${opportunity.requiredTags?.join("・") ?? "指定タグ"}と${opportunity.requiredAccountTag ?? "公式アカウント"}の条件を投稿前に確認`);
+    } else {
+      add("pass", "応募方式", "SNS投稿なしでも本賞へは公式フォーム／メールで応募可能");
+    }
   }
 
   if (opportunity.status === "closed" || daysUntil(opportunity.deadline) < 0) {
@@ -324,6 +403,10 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     add("check", "撮影・公開時期", "未公開作品と公開済み作品で条件が異なるため要項を確認");
   }
 
+  if (opportunity.shotLocationRule) {
+    add("check", "撮影地", opportunity.shotLocationRule);
+  }
+
   const allSubjects = opportunity.subjects.includes("all");
   const commonSubjects = profile.subjects.filter((subject) => opportunity.subjects.includes(subject));
   if (opportunity.themeRequired) {
@@ -392,6 +475,8 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
   } else if (profile.publication === "awarded") {
     if (opportunity.priorAwardPolicy === "allowed") {
       add("pass", "過去の受賞", "過去に受賞した作品も応募可と明記");
+    } else if (opportunity.priorAwardPolicy === "not_allowed") {
+      add("fail", "過去の受賞", "他公募へ提出・受賞した作品は対象外と明記");
     } else {
       add("check", "過去の受賞", "過去受賞作品の扱いを最新要項で確認");
     }
@@ -418,7 +503,13 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
       add("check", "同時応募", "他公募への応募状況が未回答");
     }
   } else if (profile.otherContest === "yes") {
-    add("check", "同時応募", "他公募へ応募中。同一・類似作と拘束期間の規定を公式要項で確認");
+    add(
+      opportunity.simultaneousPolicy === "not_allowed" ? "fail" : "check",
+      "同時応募",
+      opportunity.simultaneousPolicy === "not_allowed"
+        ? "他公募へ提出した作品は対象外と公式要項に明記"
+        : "他公募へ応募中。同一・類似作と拘束期間の規定を公式要項で確認",
+    );
   } else {
     add("pass", "同時応募", "他公募へ応募中ではないと回答");
   }
@@ -705,6 +796,7 @@ export default function Home() {
         </a>
         <nav aria-label="メインナビゲーション">
           <a href="#measure">この写真を測る</a>
+          <a href="#channels">フォーム以外の入口</a>
           <a href="#trends">過去作の手掛かり</a>
           <button type="button" onClick={() => setSavedOpen(true)}>
             あとで見る <span>{saved.length}</span>
@@ -717,7 +809,7 @@ export default function Home() {
           <p className="eyebrow">ONE PHOTOGRAPH · WORLDWIDE DESTINATIONS</p>
           <h1>この一枚を、<br /><em>どこへ出せるか。</em></h1>
           <p className="hero-lede">
-            世界から応募できる公募を含む{opportunities.length}の応募ルートから探します。頭の中の一枚について条件を答えてください。写真は任意です。応募条件と、公開された過去作を読む手掛かりを、同じ点数に混ぜずに並べます。
+            世界から応募できる賞・オープンコールを含む{opportunities.length}の応募ルートから探します。公式フォームだけでなく、ハッシュタグ投稿や編集部キュレーションも別の入口として扱います。写真は任意です。
           </p>
           <div className="hero-principles" aria-label="このサイトの原則">
             <span><b>01</b> 写真は端末内だけ</span>
@@ -909,6 +1001,31 @@ export default function Home() {
                 options={[{ value: "unknown", label: "未回答" }, { value: "nonprofessional", label: "写真収入が主ではない" }, { value: "professional", label: "写真収入が主" }]}
                 onChange={(value) => updateProfile("role", value)}
               />
+              <label>居住・市民権の範囲</label>
+              <select value={profile.residence} onChange={(event) => updateProfile("residence", event.target.value as Profile["residence"])}>
+                <option value="unknown">未回答</option>
+                <option value="japan">日本</option>
+                <option value="other_apec">日本以外のAPECエコノミー</option>
+                <option value="other">その他</option>
+              </select>
+              <label>SNS投稿型の応募も使えるか</label>
+              <Segmented
+                label="SNS投稿型の応募"
+                value={profile.socialEntry}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "使わない" }, { value: "yes", label: "使える" }]}
+                onChange={(value) => updateProfile("socialEntry", value)}
+              />
+              {profile.socialEntry === "yes" && (
+                <>
+                  <label>応募期間中に公開アカウントで投稿できるか</label>
+                  <Segmented
+                    label="公開SNSアカウント"
+                    value={profile.publicSocialAccount}
+                    options={[{ value: "unknown", label: "未確認" }, { value: "no", label: "非公開のみ" }, { value: "yes", label: "公開できる" }]}
+                    onChange={(value) => updateProfile("publicSocialAccount", value)}
+                  />
+                </>
+              )}
               <label>応募費用の希望</label>
               <Segmented
                 label="応募費用の希望"
@@ -964,7 +1081,7 @@ export default function Home() {
             </div>
           </div>
           <p className="results-note">
-            これは受賞可能性ではありません。世界公募は「主催地」ではなく「世界各国から応募可と公式に確認できたか」で収録し、未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
+            これは受賞可能性ではありません。世界公募は「主催地」ではなく応募可能地域で確認し、フォーム・プラットフォーム・メール・ハッシュタグという入口も分離します。未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
           </p>
           <div className="precision-legend" aria-label="判定記号の説明">
             <span><b>×</b> 明示条件の不一致</span>
@@ -987,13 +1104,17 @@ export default function Home() {
                       <div>
                         <p>{assessment.opportunity.parent}{assessment.opportunity.organizerRegion ? ` · ${assessment.opportunity.organizerRegion}` : ""}</p>
                         <h3>{assessment.opportunity.title}</h3>
+                        <span className="submission-badge">
+                          {assessment.opportunity.opportunityKind ? opportunityKindLabels[assessment.opportunity.opportunityKind] : "賞・コンテスト"}
+                          <b>{assessment.opportunity.submissionLabel ?? "応募方式は公式要項で確認"}</b>
+                        </span>
                       </div>
                       <span className="verdict-label"><b aria-hidden="true">{meta.mark}</b>{meta.label}</span>
                     </div>
                     <dl className="result-facts">
                       <div><dt>締切</dt><dd>{assessment.opportunity.deadlineLabel}{proximity && <em>{proximity}</em>}</dd></div>
                       <div><dt>費用</dt><dd>{assessment.opportunity.feeLabel}{assessment.preferenceMiss && <em>希望外</em>}</dd></div>
-                      <div><dt>応募地域</dt><dd>{assessment.opportunity.applicantScope === "worldwide" ? "世界各国から応募可" : "公式要項で確認"}{assessment.opportunity.entryLanguage && <em>{assessment.opportunity.entryLanguage}</em>}</dd></div>
+                      <div><dt>応募地域</dt><dd>{assessment.opportunity.applicantScope === "worldwide" ? "世界各国から応募可" : assessment.opportunity.applicantScopeLabel ?? "公式要項で確認"}{assessment.opportunity.entryLanguage && <em>{assessment.opportunity.entryLanguage}</em>}</dd></div>
                       <div><dt>部門との共通点</dt><dd>{assessment.commonSubjects.length ? assessment.commonSubjects.map((subject) => subjectLabels[subject]).join("・") : assessment.opportunity.subjects.includes("all") && assessment.opportunity.categorySelectionRequired ? "公式画面で部門選択" : assessment.opportunity.subjects.includes("all") ? "題材を限定しない応募枠" : "自己申告タグとの共通なし"}</dd></div>
                       <div><dt>公式根拠の確認範囲</dt><dd>{assessment.evidenceCovered}/{assessment.evidenceTotal}条項{assessment.preparation > 0 && <em>提出準備 {assessment.preparation}件</em>}</dd></div>
                     </dl>
@@ -1038,6 +1159,58 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      <section className="channels-section" id="channels" aria-labelledby="channels-title">
+        <div className="section-heading">
+          <p>BEYOND THE ENTRY FORM</p>
+          <h2 id="channels-title">フォーム以外の入口</h2>
+          <span>締切のある賞とは別に、週次・月次・常設で写真を拾う編集部やコミュニティがあります。受賞と掲載を混同せず、入口の仕組みとして並べます。</span>
+        </div>
+
+        <div className="channel-key" aria-label="入口の区分">
+          <span><b>賞・公募</b>締切と応募資格を照合</span>
+          <span><b>掲載キュレーション</b>投稿や作品群から編集部が選出</span>
+          <span><b>探索先</b>募集が日々変わるため個別条件を再確認</span>
+        </div>
+
+        <div className="channel-grid">
+          {discoveryChannels.map((channel, index) => {
+            const evidenceValues = Object.values(channel.evidence);
+            const evidenceCovered = evidenceValues.filter((value) => value === "explicit" || value === "conditional" || value === "not_applicable").length;
+            return (
+              <article className="channel-card" key={channel.id}>
+                <div className="channel-number">PATH {String(index + 1).padStart(2, "0")}</div>
+                <div className="channel-titleline">
+                  <div>
+                    <p>{channel.organizer}</p>
+                    <h3>{channel.title}</h3>
+                  </div>
+                  <span>{channel.kind}</span>
+                </div>
+                <dl>
+                  <div><dt>頻度</dt><dd>{channel.cadence}</dd></div>
+                  <div><dt>入口</dt><dd>{channel.submissionLabel}</dd></div>
+                  <div><dt>到達点</dt><dd>{channel.outcome}</dd></div>
+                </dl>
+                {(channel.requiredTags.length > 0 || channel.requiredAccountTag) && (
+                  <div className="channel-tags" aria-label="必要なタグ">
+                    {channel.requiredTags.map((tag) => <code key={tag}>{tag}</code>)}
+                    {channel.requiredAccountTag && <code>{channel.requiredAccountTag}</code>}
+                  </div>
+                )}
+                <ul>
+                  {channel.checklist.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+                <p className="channel-warning">{channel.warning}</p>
+                <div className="channel-foot">
+                  <span>公式確認 {evidenceCovered}/{evidenceValues.length}項目 · {channel.verifiedAt}</span>
+                  <a href={channel.sourceUrl} target="_blank" rel="noreferrer">公式の入口を見る ↗</a>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="trend-section" id="trends" aria-labelledby="trends-title">
         <div className="section-heading light-heading">

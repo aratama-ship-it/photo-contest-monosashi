@@ -6,7 +6,10 @@
 
 - 写真を任意で端末内だけにプレビューし、画像形式・容量・画素数を確認
 - 未回答を推測で埋めず、作品形態、撮影年、年齢、学生区分、活動区分、権利などを照合
-- 16の応募ルートを「確認範囲で不一致なし」「要確認」「明示条件に不一致」に分けて理由を表示
+- 29の応募ルートを「確認範囲で不一致なし」「要確認」「明示条件に不一致」に分けて理由を表示
+- 公式フォーム、プラットフォーム、メール、ハッシュタグを応募方式として区別
+- NatGeo Your ShotやPhotoVogue Mondayなど5つの常設・週次・月次のキュレーション／探索先を、締切型公募とは別枠で表示
+- 居住・市民権の範囲、SNS投稿可否、公開アカウント可否を条件照合
 - 応募資格、提出時の書き出し調整、部門候補を別の判定として表示
 - 各ルートの8条項について、公式根拠の確認状態をデータに保持
 - 候補の保存と入力条件をブラウザの `localStorage` に保存
@@ -27,7 +30,8 @@ npm test
 
 - 画面: `app/page.tsx`
 - スタイル: `app/globals.css`
-- 公募データ: `data/opportunities.json`
+- 公募データ: `data/opportunities.json`、`data/worldwide-opportunities.json`、`data/social-opportunities.json`
+- 常設・週次・月次の探索先: `data/discovery-channels.json`
 - 受賞傾向データ: `data/trends.json`
 - 設計根拠: `DESIGN_PLAN.md`
 
