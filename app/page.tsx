@@ -2,6 +2,7 @@
 
 import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "react";
 import opportunityData from "@/data/opportunities.json";
+import worldwideOpportunityData from "@/data/worldwide-opportunities.json";
 import trendData from "@/data/trends.json";
 
 type Subject =
@@ -47,8 +48,13 @@ type Opportunity = {
   status: "open" | "expected" | "closed" | "unknown";
   deadline: string;
   deadlineLabel: string;
-  feeType: "free" | "paid";
+  feeType: "free" | "paid" | "unknown";
   feeLabel: string;
+  deadlineTimezone?: string;
+  organizerRegion?: string;
+  organizerCountry?: string;
+  applicantScope?: "worldwide" | "limited" | "unknown";
+  entryLanguage?: string;
   entrantRole: "all" | "professional" | "nonprofessional";
   entrantAge: "all" | "adult" | "youth";
   minAge?: number;
@@ -60,6 +66,7 @@ type Opportunity = {
   shotYearFrom?: number;
   shotYearTo?: number;
   shotDateFrom?: string;
+  shotDatePolicy?: "unrestricted" | "needs_check";
   subjects: string[];
   categorySelectionRequired: boolean;
   themeRequired?: string;
@@ -124,7 +131,7 @@ type Assessment = {
   preferenceMiss: boolean;
 };
 
-const opportunities = opportunityData as Opportunity[];
+const opportunities = [...opportunityData, ...worldwideOpportunityData] as Opportunity[];
 const trends = trendData as Trend[];
 const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
@@ -205,6 +212,18 @@ function deadlineProximity(opportunity: Opportunity) {
 function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | null): Assessment {
   const checks: AssessmentCheck[] = [];
   const add = (kind: CheckKind, label: string, detail: string) => checks.push({ kind, label, detail });
+
+  if (opportunity.applicantScope === "worldwide") {
+    add("pass", "応募地域", `居住国を限定しない世界公募（応募言語: ${opportunity.entryLanguage ?? "公式要項で確認"}）`);
+  } else if (opportunity.applicantScope === "limited") {
+    add("check", "応募地域", "居住地・国籍の制限を公式要項で確認してください");
+  }
+
+  if (opportunity.status === "closed" || daysUntil(opportunity.deadline) < 0) {
+    add("fail", "締切", "収録した締切を経過しています。再募集・延長がない限り応募できません");
+  } else if (opportunity.status !== "open") {
+    add("check", "募集状態", "募集開始・受付状態を公式応募画面で確認してください");
+  }
 
   if (profile.workType === "unknown") {
     add(
@@ -299,6 +318,8 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     } else {
       add("fail", "撮影年", `${from}${from !== to ? `〜${to}` : ""}年に撮影した作品が対象`);
     }
+  } else if (opportunity.shotDatePolicy === "unrestricted") {
+    add("pass", "撮影時期", "撮影時期の制限なしと公式要項で確認");
   } else {
     add("check", "撮影・公開時期", "未公開作品と公開済み作品で条件が異なるため要項を確認");
   }
@@ -457,9 +478,15 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     add("check", "締切時刻", opportunity.deadlineNote);
   }
 
+  if (opportunity.evidence.technical === "conflict") {
+    add("check", "技術仕様", "公式ページ同士で提出寸法の記載が一致しません。応募画面で確認してください");
+  }
+
   const preferenceMiss = profile.feePreference === "free" && opportunity.feeType === "paid";
   if (preferenceMiss) {
     add("preference", "費用希望", "無料のみの希望から外れます");
+  } else if (profile.feePreference === "free" && opportunity.feeType === "unknown") {
+    add("check", "応募費用", "公式ページで料金を確認できないため、無料とは判定しません");
   }
 
   const hasFail = checks.some((item) => item.kind === "fail");
@@ -687,10 +714,10 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">ONE PHOTOGRAPH · MANY DESTINATIONS</p>
+          <p className="eyebrow">ONE PHOTOGRAPH · WORLDWIDE DESTINATIONS</p>
           <h1>この一枚を、<br /><em>どこへ出せるか。</em></h1>
           <p className="hero-lede">
-            頭の中の一枚について条件を答えてください。写真は任意です。応募条件と、公開された過去作を読む手掛かりを、同じ点数に混ぜずに並べます。
+            世界から応募できる公募を含む{opportunities.length}の応募ルートから探します。頭の中の一枚について条件を答えてください。写真は任意です。応募条件と、公開された過去作を読む手掛かりを、同じ点数に混ぜずに並べます。
           </p>
           <div className="hero-principles" aria-label="このサイトの原則">
             <span><b>01</b> 写真は端末内だけ</span>
@@ -937,7 +964,7 @@ export default function Home() {
             </div>
           </div>
           <p className="results-note">
-            これは受賞可能性ではありません。未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
+            これは受賞可能性ではありません。世界公募は「主催地」ではなく「世界各国から応募可と公式に確認できたか」で収録し、未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
           </p>
           <div className="precision-legend" aria-label="判定記号の説明">
             <span><b>×</b> 明示条件の不一致</span>
@@ -958,7 +985,7 @@ export default function Home() {
                   <div className="result-main">
                     <div className="result-titleline">
                       <div>
-                        <p>{assessment.opportunity.parent}</p>
+                        <p>{assessment.opportunity.parent}{assessment.opportunity.organizerRegion ? ` · ${assessment.opportunity.organizerRegion}` : ""}</p>
                         <h3>{assessment.opportunity.title}</h3>
                       </div>
                       <span className="verdict-label"><b aria-hidden="true">{meta.mark}</b>{meta.label}</span>
@@ -966,6 +993,7 @@ export default function Home() {
                     <dl className="result-facts">
                       <div><dt>締切</dt><dd>{assessment.opportunity.deadlineLabel}{proximity && <em>{proximity}</em>}</dd></div>
                       <div><dt>費用</dt><dd>{assessment.opportunity.feeLabel}{assessment.preferenceMiss && <em>希望外</em>}</dd></div>
+                      <div><dt>応募地域</dt><dd>{assessment.opportunity.applicantScope === "worldwide" ? "世界各国から応募可" : "公式要項で確認"}{assessment.opportunity.entryLanguage && <em>{assessment.opportunity.entryLanguage}</em>}</dd></div>
                       <div><dt>部門との共通点</dt><dd>{assessment.commonSubjects.length ? assessment.commonSubjects.map((subject) => subjectLabels[subject]).join("・") : assessment.opportunity.subjects.includes("all") && assessment.opportunity.categorySelectionRequired ? "公式画面で部門選択" : assessment.opportunity.subjects.includes("all") ? "題材を限定しない応募枠" : "自己申告タグとの共通なし"}</dd></div>
                       <div><dt>公式根拠の確認範囲</dt><dd>{assessment.evidenceCovered}/{assessment.evidenceTotal}条項{assessment.preparation > 0 && <em>提出準備 {assessment.preparation}件</em>}</dd></div>
                     </dl>

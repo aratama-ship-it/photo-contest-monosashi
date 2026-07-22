@@ -10,7 +10,7 @@
       {
         "id": "evidence_coverage_chart",
         "title": "公式根拠ステータスの件数",
-        "subtitle": "16応募ルート × 8条項 = 128セル",
+        "subtitle": "27応募ルート × 8条項 = 216セル（2026年7月23日時点）",
         "type": "bar",
         "dataset": "evidence_states",
         "sourceId": "audit_data_sql",
@@ -59,13 +59,19 @@
         "id": "executive_summary",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## Executive Summary\n\n- **誤って○を出す最大要因だった初期値の推測を廃止しました。** 年齢、撮影年、作品形式、発表歴、編集、権利などは未回答から始まり、未回答のままなら判定は「要確認」です。\n- **16応募ルート、8条項ずつを監査しました。** 128セルのうち、公式ページで明示または条件付き記載を確認できたのは104セル（81.3%）です。\n- **締切は全16ルートで再確認が必要です。** Sonyの13ルートは同一公式ページ内で時刻が一致せず、TIFAの2ルートとCEWEは日付のみ確認できました。\n- **応募資格と提出準備を分離しました。** JPEG化、容量、寸法の調整は応募資格の×ではなく「書き出しで調整」として表示します。"
+        "body": "## Executive Summary\n\n- **世界各国から応募できる11ルートを追加しました。** TPOTY、ND Awards、BIFA、FAPA、HIPAを、主催地ではなく公式要項の応募可能地域で確認しています。既存分を合わせて27ルートです。\n- **27応募ルート、8条項ずつを監査しました。** 216セルのうち、公式ページで明示または条件付き記載を確認できたのは171セル（79.2%）です。\n- **締切の時刻・タイムゾーンまで確認できたのは5ルートです。** 残る22ルートは公式内の不一致または日付のみ確認のため、要確認を維持します。\n- **不明点を世界対応のために推測していません。** HIPAの料金は不明のまま、BIFAの最小寸法は公式ページ間の矛盾として扱い、無料・応募可・技術適合を断定しません。"
       },
       {
         "id": "coverage_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## 81.3%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の104セルに対し、締切の不一致・時刻未確認が16セル、未記載または未調査が8セルあります。後者24セルは安全側に倒し、回答が合っていても「要確認」とします。"
+        "body": "## 79.2%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の171セルに対し、公式内の不一致15セル、締切日だけを確認した9セル、未記載・未調査21セルがあります。後者45セルは安全側に倒し、回答が合っていても「要確認」とします。"
+      },
+      {
+        "id": "worldwide_finding",
+        "type": "markdown",
+        "sourceId": "audit_data_sql",
+        "body": "## 世界対応は11ルートを一括表示するだけではない\n\n追加した11ルートはすべて、公式要項で世界各国から応募できることを確認しました。画面には応募地域、主催地域、応募言語を分けて表示します。これにより、英国主催でも世界から応募できる公募と、所在地未確認でも世界応募を明記する公募を同じ意味に潰しません。"
       },
       {
         "id": "evidence_coverage_block",
@@ -75,7 +81,7 @@
       {
         "id": "corrections_finding",
         "type": "markdown",
-        "body": "## 境界値とデータ構造の誤差を修正\n\n- Sony Single Imageは公式の10部門をすべて個別ルートとして収録しました。\n- Sony Seriesの年齢条件を「18歳以上」ではなく、公式の18歳超に合わせて19歳以上として扱います。Studentは18〜30歳です。\n- Sony Series / Studentの提出形式はJPEGのみとし、TIFF可という誤った扱いを削除しました。\n- TIFAの撮影期間は年だけで丸めず、2021年8月1日を境界日として、その年の作品は日付確認へ送ります。"
+        "body": "## 境界値と公式内の食い違いを安全側へ送る\n\n- Sony Single Imageは公式の10部門をすべて個別ルートとして収録しています。\n- Sony SeriesとFAPAの「18歳超」は19歳以上として扱い、18歳以上の公募と区別します。\n- TIFAとBIFAの5年以内条件は年だけで丸めず、境界年は日付確認へ送ります。\n- BIFAの最小1000pxは公式ページに最短辺／最長辺の食い違いがあるため、数値判定に使いません。\n- HIPAの料金は公式ページで確認できないため、無料希望の利用者には要確認として表示します。"
       },
       {
         "id": "source_register_block",
@@ -85,17 +91,17 @@
       {
         "id": "next_steps",
         "type": "markdown",
-        "body": "## 次に精度を上げる順序\n\n1. CEWEの技術仕様、発表歴、AI、同時応募、権利を公式規約から条項単位で確認する。\n2. Sonyの締切時刻の公式内不一致を、応募画面または主催者更新で再確認する。\n3. TIFAとCEWEの締切時刻を確認し、日付だけの暫定値を解消する。\n4. 判定関数をUIから分離し、境界値・未回答・提出準備の組み合わせテストを追加する。"
+        "body": "## 次に精度を上げる順序\n\n1. BIFAの最小寸法を応募画面で確認し、公式ページ間の矛盾を解消する。\n2. ND Awards、BIFA、FAPAの締切時刻とタイムゾーンを確認する。\n3. HIPAの料金、編集、公開歴、同時応募の条項を確認する。\n4. CEWEの技術仕様、発表歴、AI、同時応募、権利を公式規約から条項単位で確認する。\n5. 英語以外の公式要項を持つ地域へ候補探索を広げる。"
       },
       {
         "id": "further_questions",
         "type": "markdown",
-        "body": "## Further Questions\n\n- 次の追加対象は、応募件数の多さではなく、公式要項が構造化しやすく更新頻度を追える公募から選ぶべきか。\n- 過去作の傾向は、部門別・年度別に何点を見れば「観察範囲」として十分か。\n- 応募規約の更新検知を、ページ差分だけでなく条項差分として運用できるか。"
+        "body": "## Further Questions\n\n- 北米・中南米・アフリカ・オセアニアの主催者から、世界応募を明記した開催中公募をどの順に追加するか。\n- 英語以外の規約を翻訳して収録する場合、原文・翻訳・未確定語をどう併記するか。\n- 過去作の傾向は、部門別・年度別に何点を見れば「観察範囲」として十分か。\n- 応募規約の更新検知を、ページ差分だけでなく条項差分として運用できるか。"
       },
       {
         "id": "caveats",
         "type": "markdown",
-        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。応募資格の最終判断は各公式要項と応募画面で行ってください。確認対象: [Sony Single Image](https://www.worldphoto.org/sony-world-photography-awards/single-image)、[Sony Youth](https://www.worldphoto.org/sony-world-photography-awards/youth)、[Sony Student](https://www.worldphoto.org/sony-world-photography-awards/student)、[Sony Series](https://www.worldphoto.org/sony-world-photography-awards/series)、[TIFA FAQ](https://www.tokyofotoawards.jp/faqs/)、[CEWE Photo Award](https://www.cewe.fr/concours-photo.html)。"
+        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。「世界対応」は世界中の全コンテストを網羅したという意味ではなく、今回追加した11ルートについて居住国を限定しないことを公式要項で確認した状態です。応募資格の最終判断は各公式要項と応募画面で行ってください。確認対象: [TPOTY Rules](https://www.tpoty.com/tpoty-2026-awards/rules/)、[ND Awards Terms](https://ndawards.net/page/about-competition/terms-conditions/)、[BIFA Prize](https://budapestfotoawards.com/prize/)、[FAPA Terms](https://fineartphotoawards.com/terms/)、[HIPA Competition](https://hipa.ae/competitions/determination-without-limits-2026)、および既存6公式ページ。"
       }
     ]
   },
@@ -105,20 +111,25 @@
     "status": "ready",
     "datasets": {
       "evidence_states": [
-        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 83, "share_percent": 64.8, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
-        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 21, "share_percent": 16.4, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
-        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 13, "share_percent": 10.2, "screen_treatment": "要確認", "rank": 3 },
-        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 5, "share_percent": 3.9, "screen_treatment": "要確認", "rank": 4 },
-        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 3, "share_percent": 2.3, "screen_treatment": "要確認", "rank": 5 },
-        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 3, "share_percent": 2.3, "screen_treatment": "要確認", "rank": 6 }
+        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 141, "share_percent": 65.3, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
+        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 30, "share_percent": 13.9, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
+        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 15, "share_percent": 6.9, "screen_treatment": "要確認", "rank": 3 },
+        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 13, "share_percent": 6.0, "screen_treatment": "要確認", "rank": 4 },
+        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 9, "share_percent": 4.2, "screen_treatment": "要確認", "rank": 5 },
+        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 8, "share_percent": 3.7, "screen_treatment": "要確認", "rank": 6 }
       ],
       "source_register": [
         { "source_label": "Sony Single Image", "route_count": 10, "deadline_evidence": "公式内で13:00/16:00 GMTが不一致", "technical_evidence": "JPEG・sRGB・1〜5MBを明示", "largest_gap": "締切時刻", "official_url": "https://www.worldphoto.org/sony-world-photography-awards/single-image" },
+        { "source_label": "TPOTY 2026 Rules", "route_count": 4, "deadline_evidence": "2026年10月12日23:59 英国時間", "technical_evidence": "JPEG・3MB以下・長辺2000px以下", "largest_gap": "発表歴・同時応募の個別条件", "official_url": "https://www.tpoty.com/tpoty-2026-awards/rules/" },
         { "source_label": "TIFA FAQ", "route_count": 2, "deadline_evidence": "2026年8月1日、時刻未確認", "technical_evidence": "JPG・sRGB・長辺1000〜4000px・4MB以下", "largest_gap": "締切時刻・権利の詳細", "official_url": "https://www.tokyofotoawards.jp/faqs/" },
+        { "source_label": "ND Awards Terms", "route_count": 2, "deadline_evidence": "2026年9月20日、時刻未確認", "technical_evidence": "JPEG・長辺1200px", "largest_gap": "締切時刻・AI方針", "official_url": "https://ndawards.net/page/about-competition/terms-conditions/" },
+        { "source_label": "BIFA Prize / FAQ", "route_count": 2, "deadline_evidence": "2026年8月5日、時刻未確認", "technical_evidence": "最小1000pxの対象辺が公式内で不一致", "largest_gap": "最小寸法・締切時刻・AI方針", "official_url": "https://budapestfotoawards.com/prize/" },
+        { "source_label": "FAPA Terms / FAQ", "route_count": 2, "deadline_evidence": "2027年2月14日、時刻未確認", "technical_evidence": "JPG・長辺1200px", "largest_gap": "締切時刻・AI方針", "official_url": "https://fineartphotoawards.com/terms/" },
         { "source_label": "Sony Youth", "route_count": 1, "deadline_evidence": "公式内で13:00/16:00 GMTが不一致", "technical_evidence": "JPEG・sRGB・1〜5MBを明示", "largest_gap": "締切時刻", "official_url": "https://www.worldphoto.org/sony-world-photography-awards/youth" },
         { "source_label": "Sony Student", "route_count": 1, "deadline_evidence": "公式内で13:00/16:00 GMTが不一致", "technical_evidence": "JPEG・sRGB・1〜5MB・EXIFを明示", "largest_gap": "締切時刻・公開歴の条件", "official_url": "https://www.worldphoto.org/sony-world-photography-awards/student" },
         { "source_label": "Sony Series", "route_count": 1, "deadline_evidence": "公式内で13:00/16:00 GMTが不一致", "technical_evidence": "JPEG・sRGB・1〜5MB・EXIFを明示", "largest_gap": "締切時刻・公開歴の条件", "official_url": "https://www.worldphoto.org/sony-world-photography-awards/series" },
-        { "source_label": "CEWE Photo Award", "route_count": 1, "deadline_evidence": "2027年5月31日、時刻未確認", "technical_evidence": "未調査", "largest_gap": "技術・発表歴・AI・同時応募・権利", "official_url": "https://www.cewe.fr/concours-photo.html" }
+        { "source_label": "CEWE Photo Award", "route_count": 1, "deadline_evidence": "2027年5月31日、時刻未確認", "technical_evidence": "未調査", "largest_gap": "技術・発表歴・AI・同時応募・権利", "official_url": "https://www.cewe.fr/concours-photo.html" },
+        { "source_label": "HIPA Determination Without Limits", "route_count": 1, "deadline_evidence": "2026年8月20日23:59 UAE時間", "technical_evidence": "JPEGまたはRAW・5MB以上（初期提出形式は要確認）", "largest_gap": "料金・編集・発表歴・同時応募", "official_url": "https://hipa.ae/competitions/determination-without-limits-2026" }
       ]
     }
   },
@@ -129,12 +140,12 @@
       "path": "quality/queries/evidence_coverage.sql",
       "query": {
         "engine": "DuckDB",
-        "description": "data/opportunities.jsonの16ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
+        "description": "2つの応募ルートJSONにある27ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
         "executed_at": "2026-07-23T00:00:00+09:00",
         "language": "sql",
-        "tables_used": ["data/opportunities.json"],
+        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json"],
         "filters": ["verifiedAt = 2026-07-23", "8 evidence fields per route"],
-        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全128セル"]
+        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全216セル"]
       }
     },
     {
@@ -146,7 +157,7 @@
         "description": "応募ルートを公式URL単位に集約し、締切と技術仕様の確認状態を一覧化します。",
         "executed_at": "2026-07-23T00:00:00+09:00",
         "language": "sql",
-        "tables_used": ["data/opportunities.json"],
+        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json"],
         "filters": ["verifiedAt = 2026-07-23"]
       }
     }
