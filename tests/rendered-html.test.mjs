@@ -32,7 +32,7 @@ test("server-renders the photo contest matching experience", async () => {
   assert.match(html, /<html lang="ja"/i);
   assert.match(html, /写真コンテストものさし/);
   assert.match(html, /この一枚を、[\s\S]*どこへ出せるか/);
-  assert.match(html, /写真はアップロードされません/);
+  assert.match(html, /写真は任意です/);
   assert.match(html, /応募候補/);
   assert.match(html, /過去作を読む手掛かり/);
   assert.match(html, /\/og\.png/);
@@ -51,15 +51,20 @@ test("seed data keeps application routes and evidence auditable", async () => {
   const opportunities = JSON.parse(opportunitiesText);
   const trends = JSON.parse(trendsText);
 
-  assert.equal(opportunities.length, 12);
-  assert.equal(new Set(opportunities.map((item) => item.id)).size, 12);
-  assert.ok(opportunities.every((item) => item.verifiedAt === "2026-07-22"));
+  assert.equal(opportunities.length, 16);
+  assert.equal(new Set(opportunities.map((item) => item.id)).size, 16);
+  assert.ok(opportunities.every((item) => item.verifiedAt === "2026-07-23"));
   assert.ok(opportunities.every((item) => item.sourceUrl.startsWith("https://")));
   assert.ok(opportunities.every((item) => !Number.isNaN(Date.parse(item.deadline))));
+  assert.ok(opportunities.every((item) => Object.keys(item.evidence).length === 8));
+  assert.equal(opportunities.filter((item) => item.id.startsWith("sony-single-")).length, 10);
   assert.ok(trends.length >= 4);
   assert.ok(trends.every((item) => item.url.startsWith("https://")));
   assert.match(page, /localStorage/);
   assert.match(page, /URL\.createObjectURL/);
+  assert.match(page, /未回答を推測で埋めず/);
+  assert.match(page, /提出準備/);
+  assert.match(page, /\/quality-report\.html/);
   assert.match(layout, /x-forwarded-host/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
 });

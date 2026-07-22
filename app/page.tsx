@@ -5,6 +5,7 @@ import opportunityData from "@/data/opportunities.json";
 import trendData from "@/data/trends.json";
 
 type Subject =
+  | "animals"
   | "portrait"
   | "street"
   | "landscape"
@@ -14,22 +15,29 @@ type Subject =
   | "documentary"
   | "stilllife"
   | "sports"
+  | "motion"
   | "travel";
 
 type Profile = {
-  shotYear: number;
-  workType: "single" | "series";
-  seriesCount: number;
-  tone: "color" | "monochrome";
+  shotYear: number | null;
+  workType: "unknown" | "single" | "series";
+  seriesCount: number | null;
+  tone: "unknown" | "color" | "monochrome";
   subjects: Subject[];
-  age: number;
-  student: boolean;
-  role: "professional" | "nonprofessional";
-  publication: "unpublished" | "social" | "commercial" | "awarded";
-  otherContest: boolean;
-  editing: "basic" | "composite" | "ai";
+  age: number | null;
+  student: "unknown" | "yes" | "no";
+  institutionRegistered: "unknown" | "yes" | "no";
+  role: "unknown" | "professional" | "nonprofessional";
+  publication: "unknown" | "unpublished" | "social" | "commercial" | "awarded";
+  otherContest: "unknown" | "yes" | "no";
+  editing: "unknown" | "basic" | "composite" | "generative_edit" | "generated_origin";
+  ownsRights: "unknown" | "yes" | "no";
+  peoplePermission: "unknown" | "yes" | "no" | "not_applicable";
   feePreference: "any" | "free";
 };
+
+type EvidenceState = "explicit" | "conditional" | "conflict" | "date_only" | "not_stated" | "not_researched";
+type EvidenceKey = "deadline" | "entrant" | "work" | "technical" | "publication" | "simultaneous" | "editing" | "rights";
 
 type Opportunity = {
   id: string;
@@ -43,13 +51,18 @@ type Opportunity = {
   feeLabel: string;
   entrantRole: "all" | "professional" | "nonprofessional";
   entrantAge: "all" | "adult" | "youth";
+  minAge?: number;
+  maxAge?: number;
   studentOnly: boolean;
   workType: "single" | "series" | "both";
   seriesMin?: number;
   seriesMax?: number;
   shotYearFrom?: number;
   shotYearTo?: number;
+  shotDateFrom?: string;
   subjects: string[];
+  categorySelectionRequired: boolean;
+  themeRequired?: string;
   tones: string[];
   formats: string[];
   minFileMB?: number;
@@ -61,6 +74,9 @@ type Opportunity = {
   simultaneousPolicy: string;
   aiPolicy: string;
   editPolicy: string;
+  rightsPolicy: "explicit" | "needs_check";
+  deadlineNote: string;
+  evidence: Record<EvidenceKey, EvidenceState>;
   sourceUrl: string;
   sourceLabel: string;
   verifiedAt: string;
@@ -92,7 +108,7 @@ type PhotoInfo = {
   previewable: boolean;
 };
 
-type CheckKind = "pass" | "check" | "fail" | "preference";
+type CheckKind = "pass" | "check" | "fail" | "prepare" | "fit" | "preference";
 type AssessmentCheck = { kind: CheckKind; label: string; detail: string };
 type Verdict = "eligible" | "needs_check" | "ineligible";
 type Assessment = {
@@ -101,15 +117,20 @@ type Assessment = {
   checks: AssessmentCheck[];
   commonSubjects: Subject[];
   unresolved: number;
+  preparation: number;
+  fitMiss: boolean;
+  evidenceCovered: number;
+  evidenceTotal: number;
   preferenceMiss: boolean;
 };
 
 const opportunities = opportunityData as Opportunity[];
 const trends = trendData as Trend[];
-const PROFILE_KEY = "photo-monosashi-profile-v1";
+const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
 
 const subjectLabels: Record<Subject, string> = {
+  animals: "動物・ペット",
   portrait: "人物・ポートレート",
   street: "街・ストリート",
   landscape: "風景",
@@ -119,26 +140,30 @@ const subjectLabels: Record<Subject, string> = {
   documentary: "記録・ドキュメンタリー",
   stilllife: "静物",
   sports: "スポーツ・動き",
+  motion: "動き・モーション",
   travel: "旅・文化",
 };
 
 const defaultProfile: Profile = {
-  shotYear: 2026,
-  workType: "single",
-  seriesCount: 5,
-  tone: "color",
+  shotYear: null,
+  workType: "unknown",
+  seriesCount: null,
+  tone: "unknown",
   subjects: [],
-  age: 35,
-  student: false,
-  role: "nonprofessional",
-  publication: "unpublished",
-  otherContest: false,
-  editing: "basic",
+  age: null,
+  student: "unknown",
+  institutionRegistered: "unknown",
+  role: "unknown",
+  publication: "unknown",
+  otherContest: "unknown",
+  editing: "unknown",
+  ownsRights: "unknown",
+  peoplePermission: "unknown",
   feePreference: "any",
 };
 
 const verdictMeta: Record<Verdict, { label: string; mark: string }> = {
-  eligible: { label: "明示条件に適合", mark: "○" },
+  eligible: { label: "確認範囲で不一致なし", mark: "○" },
   needs_check: { label: "要確認", mark: "△" },
   ineligible: { label: "明示条件に不一致", mark: "×" },
 };
@@ -150,9 +175,9 @@ function normalizeProfile(value: Partial<Profile>): Profile {
   return {
     ...defaultProfile,
     ...value,
-    shotYear: Number(value.shotYear) || defaultProfile.shotYear,
-    seriesCount: Number(value.seriesCount) || defaultProfile.seriesCount,
-    age: Number(value.age) || defaultProfile.age,
+    shotYear: value.shotYear ? Number(value.shotYear) : null,
+    seriesCount: value.seriesCount ? Number(value.seriesCount) : null,
+    age: value.age ? Number(value.age) : null,
     subjects,
   };
 }
@@ -166,19 +191,28 @@ function daysUntil(value: string) {
   return Math.ceil((parseDeadline(value) - Date.now()) / 86_400_000);
 }
 
-function deadlineProximity(value: string) {
-  const days = daysUntil(value);
+function deadlineProximity(opportunity: Opportunity) {
+  const days = daysUntil(opportunity.deadline);
   if (days < 0) return "締切経過の可能性";
-  if (days === 0) return "本日締切";
-  if (days <= 14) return `あと${days}日`;
+  if (days === 0) return opportunity.evidence.deadline === "explicit" ? "本日締切" : "本日付近・時刻要確認";
+  if (days <= 14) {
+    const suffix = opportunity.evidence.deadline === "conflict" ? "・時刻不一致" : opportunity.evidence.deadline === "date_only" ? "・時刻未確認" : "";
+    return `あと${days}日${suffix}`;
+  }
   return null;
 }
 
-function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): Assessment {
+function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | null): Assessment {
   const checks: AssessmentCheck[] = [];
   const add = (kind: CheckKind, label: string, detail: string) => checks.push({ kind, label, detail });
 
-  if (opportunity.workType === "both" || opportunity.workType === profile.workType) {
+  if (profile.workType === "unknown") {
+    add(
+      opportunity.workType === "both" ? "pass" : "check",
+      "作品形式",
+      opportunity.workType === "both" ? "単写真・シリーズの両方に応募枠あり" : "単写真かシリーズか未回答",
+    );
+  } else if (opportunity.workType === "both" || opportunity.workType === profile.workType) {
     add("pass", "作品形式", profile.workType === "single" ? "単写真に対応" : "シリーズに対応");
   } else {
     add(
@@ -191,33 +225,52 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
   if (profile.workType === "series" && opportunity.workType !== "single") {
     const min = opportunity.seriesMin ?? 1;
     const max = opportunity.seriesMax ?? 100;
-    if (profile.seriesCount >= min && profile.seriesCount <= max) {
+    if (profile.seriesCount === null) {
+      add("check", "シリーズ枚数", `${min}〜${max}枚。構成枚数を入力してください`);
+    } else if (profile.seriesCount >= min && profile.seriesCount <= max) {
       add("pass", "シリーズ枚数", `${profile.seriesCount}枚は規定範囲内`);
     } else {
       add("fail", "シリーズ枚数", `${min}〜${max}枚が必要`);
     }
   }
 
-  if (opportunity.entrantAge === "youth") {
-    add(profile.age <= 19 ? "pass" : "fail", "年齢", "締切日時点で19歳以下が対象");
-  } else if (opportunity.entrantAge === "adult") {
-    add(profile.age >= 18 ? "pass" : "fail", "年齢", "18歳以上が対象");
+  if (opportunity.minAge !== undefined || opportunity.maxAge !== undefined) {
+    const min = opportunity.minAge ?? 0;
+    const max = opportunity.maxAge ?? 999;
+    const ageLabel = opportunity.minAge !== undefined && opportunity.maxAge !== undefined
+      ? `${min}〜${max}歳`
+      : opportunity.minAge !== undefined
+        ? `${min}歳以上`
+        : `${max}歳以下`;
+    add(
+      profile.age === null ? "check" : profile.age >= min && profile.age <= max ? "pass" : "fail",
+      "年齢",
+      profile.age === null ? `締切日時点の年齢が未回答（対象: ${ageLabel}）` : `締切日時点で${ageLabel}が対象`,
+    );
   } else {
-    add("pass", "年齢", "年齢を問わない応募枠");
+    add("pass", "年齢", "公式要項上、年齢区分を設けない応募枠");
   }
 
   if (opportunity.studentOnly) {
-    if (!profile.student) {
+    if (profile.student === "unknown") {
+      add("check", "学生資格", "写真プログラムを履修中か未回答");
+    } else if (profile.student === "no") {
       add("fail", "学生資格", "高等教育の写真プログラム履修者が対象");
-    } else if (profile.age < 18 || profile.age > 30) {
+    } else if (profile.age !== null && (profile.age < 18 || profile.age > 30)) {
       add("fail", "学生資格", "学生部門は18〜30歳が対象");
+    } else if (profile.institutionRegistered === "no") {
+      add("fail", "教育機関の登録", "所属機関が公式登録されている必要があります");
+    } else if (profile.institutionRegistered === "unknown") {
+      add("check", "教育機関の登録", "所属機関が公式登録済みか確認してください");
     } else {
-      add("check", "学生資格", "所属教育機関の登録状況を公式サイトで確認");
+      add("pass", "学生資格", "写真プログラム履修・教育機関登録を回答済み");
     }
   }
 
   if (opportunity.entrantRole !== "all") {
-    if (opportunity.entrantRole === profile.role) {
+    if (profile.role === "unknown") {
+      add("check", "応募区分", "写真収入が主か未回答");
+    } else if (opportunity.entrantRole === profile.role) {
       add(
         "pass",
         "応募区分",
@@ -235,8 +288,14 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
   if (opportunity.shotYearFrom || opportunity.shotYearTo) {
     const from = opportunity.shotYearFrom ?? 0;
     const to = opportunity.shotYearTo ?? 9999;
-    if (profile.shotYear >= from && profile.shotYear <= to) {
+    if (profile.shotYear === null) {
+      add("check", "撮影年", `${from}${from !== to ? `〜${to}` : ""}年が対象。撮影年を入力してください`);
+    } else if (profile.shotYear >= from && profile.shotYear <= to) {
+      if (opportunity.shotDateFrom && profile.shotYear === Number(opportunity.shotDateFrom.slice(0, 4))) {
+        add("check", "撮影日", `${opportunity.shotDateFrom}以降か、年だけでは判定できません`);
+      } else {
       add("pass", "撮影年", `${profile.shotYear}年は対象期間内`);
+      }
     } else {
       add("fail", "撮影年", `${from}${from !== to ? `〜${to}` : ""}年に撮影した作品が対象`);
     }
@@ -246,50 +305,70 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
 
   const allSubjects = opportunity.subjects.includes("all");
   const commonSubjects = profile.subjects.filter((subject) => opportunity.subjects.includes(subject));
-  if (allSubjects) {
-    add("pass", "題材・部門", "幅広い題材を受け付ける応募枠");
+  if (opportunity.themeRequired) {
+    add("check", "指定テーマ", `「${opportunity.themeRequired}」への応答は本人が公式ブリーフと照合してください`);
+  } else if (allSubjects && opportunity.categorySelectionRequired) {
+    add("check", "題材・部門", "複数部門を含む総合枠。公式応募画面で部門を選ぶ必要があります");
+  } else if (allSubjects) {
+    add("pass", "題材・部門", "公式要項上、題材を限定しない応募枠");
   } else if (profile.subjects.length === 0) {
     add("check", "題材・部門", "作品の題材を選ぶと部門との対応を確認できます");
   } else if (commonSubjects.length > 0) {
-    add("pass", "題材・部門", commonSubjects.map((subject) => subjectLabels[subject]).join("・"));
+    add(opportunity.categorySelectionRequired ? "check" : "pass", "題材・部門", `${commonSubjects.map((subject) => subjectLabels[subject]).join("・")}${opportunity.categorySelectionRequired ? "に対応する公式部門を選択してください" : ""}`);
   } else {
-    add("fail", "題材・部門", "選んだ題材とこの部門の主題が一致しません");
+    add("fit", "部門候補", "自己申告した題材との共通タグなし。応募不可ではありませんが、別部門も確認してください");
   }
 
-  if (opportunity.tones.includes(profile.tone)) {
+  if (profile.tone === "unknown" && opportunity.tones.length === 1) {
+    add("check", "カラー形式", "カラー／モノクロが未回答");
+  } else if (profile.tone === "unknown") {
+    add("pass", "カラー形式", "カラー・モノクロの両方に対応");
+  } else if (opportunity.tones.includes(profile.tone)) {
     add("pass", "カラー形式", profile.tone === "color" ? "カラー作品に対応" : "モノクロ作品に対応");
+  } else {
+    add("fail", "カラー形式", "この応募枠の指定形式と一致しません");
   }
 
-  if (opportunity.formats.length > 0) {
-    if (opportunity.formats.includes(photo.type)) {
-      add("pass", "ファイル形式", photo.type === "image/jpeg" ? "JPEG" : photo.type);
-    } else {
-      add("fail", "ファイル形式", `${opportunity.formats.map((value) => value.replace("image/", "").toUpperCase()).join(" / ")}へ書き出しが必要`);
+  if (!photo && (opportunity.formats.length > 0 || opportunity.minFileMB || opportunity.maxFileMB || opportunity.minLongEdge || opportunity.maxLongEdge)) {
+    add("prepare", "提出ファイル", "写真なしで照合中。形式・容量・寸法は応募前に確認してください");
+  } else if (photo) {
+    if (opportunity.formats.length > 0) {
+      if (opportunity.formats.includes(photo.type)) {
+        add("pass", "ファイル形式", photo.type === "image/jpeg" ? "JPEG" : photo.type);
+      } else {
+        add("prepare", "ファイル形式", `${opportunity.formats.map((value) => value.replace("image/", "").toUpperCase()).join(" / ")}へ書き出しが必要`);
+      }
+    }
+
+    if (opportunity.minFileMB && photo.sizeMB < opportunity.minFileMB) {
+      add("prepare", "ファイル容量", `${opportunity.minFileMB}MB以上へ書き出しが必要（現在${photo.sizeMB.toFixed(1)}MB）`);
+    } else if (opportunity.maxFileMB && photo.sizeMB > opportunity.maxFileMB) {
+      add("prepare", "ファイル容量", `${opportunity.maxFileMB}MB以下へ書き出しが必要（現在${photo.sizeMB.toFixed(1)}MB）`);
+    } else if (opportunity.minFileMB || opportunity.maxFileMB) {
+      add("pass", "ファイル容量", `${photo.sizeMB.toFixed(1)}MBは記載範囲内`);
+    }
+
+    const longEdge = photo.width && photo.height ? Math.max(photo.width, photo.height) : null;
+    if (opportunity.minLongEdge || opportunity.maxLongEdge) {
+      if (!longEdge) {
+        add("prepare", "ピクセル寸法", "この形式では寸法を読めません。書き出し時に確認してください");
+      } else if (opportunity.minLongEdge && longEdge < opportunity.minLongEdge) {
+        add("prepare", "ピクセル寸法", `長辺${opportunity.minLongEdge}px以上へ書き出しが必要（現在${longEdge}px）`);
+      } else if (opportunity.maxLongEdge && longEdge > opportunity.maxLongEdge) {
+        add("prepare", "ピクセル寸法", `長辺${opportunity.maxLongEdge}px以下へ書き出しが必要（現在${longEdge}px）`);
+      } else {
+        add("pass", "ピクセル寸法", `長辺${longEdge}pxは記載範囲内`);
+      }
     }
   }
 
-  if (opportunity.minFileMB && photo.sizeMB < opportunity.minFileMB) {
-    add("fail", "ファイル容量", `${opportunity.minFileMB}MB以上が必要（現在${photo.sizeMB.toFixed(1)}MB）`);
-  } else if (opportunity.maxFileMB && photo.sizeMB > opportunity.maxFileMB) {
-    add("fail", "ファイル容量", `${opportunity.maxFileMB}MB以下が必要（現在${photo.sizeMB.toFixed(1)}MB）`);
-  } else if (opportunity.minFileMB || opportunity.maxFileMB) {
-    add("pass", "ファイル容量", `${photo.sizeMB.toFixed(1)}MBは記載範囲内`);
-  }
-
-  const longEdge = photo.width && photo.height ? Math.max(photo.width, photo.height) : null;
-  if (opportunity.minLongEdge || opportunity.maxLongEdge) {
-    if (!longEdge) {
-      add("check", "ピクセル寸法", "この形式ではブラウザから寸法を読み取れませんでした");
-    } else if (opportunity.minLongEdge && longEdge < opportunity.minLongEdge) {
-      add("fail", "ピクセル寸法", `長辺${opportunity.minLongEdge}px以上が必要（現在${longEdge}px）`);
-    } else if (opportunity.maxLongEdge && longEdge > opportunity.maxLongEdge) {
-      add("fail", "ピクセル寸法", `長辺${opportunity.maxLongEdge}px以下が必要（現在${longEdge}px）`);
+  if (profile.publication === "unknown") {
+    if (opportunity.publicationPolicy === "allowed" && opportunity.priorAwardPolicy === "allowed") {
+      add("pass", "発表・受賞歴", "公開済み・過去受賞作品も可と公式に明記");
     } else {
-      add("pass", "ピクセル寸法", `長辺${longEdge}pxは記載範囲内`);
+      add("check", "発表・受賞歴", "未回答。公開時期や公開点数で条件が変わります");
     }
-  }
-
-  if (profile.publication === "awarded") {
+  } else if (profile.publication === "awarded") {
     if (opportunity.priorAwardPolicy === "allowed") {
       add("pass", "過去の受賞", "過去に受賞した作品も応募可と明記");
     } else {
@@ -311,28 +390,71 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
     add("pass", "発表歴", "未発表として照合");
   }
 
-  if (profile.otherContest) {
-    add(
-      opportunity.simultaneousPolicy === "allowed_with_notes" ? "check" : "check",
-      "同時応募",
-      "他公募へ応募中。結果確定までの拘束や同一・類似作の規定を必ず確認",
-    );
+  if (profile.otherContest === "unknown") {
+    if (opportunity.simultaneousPolicy === "allowed") {
+      add("pass", "同時応募", "同時応募可と公式に明記");
+    } else {
+      add("check", "同時応募", "他公募への応募状況が未回答");
+    }
+  } else if (profile.otherContest === "yes") {
+    add("check", "同時応募", "他公募へ応募中。同一・類似作と拘束期間の規定を公式要項で確認");
+  } else {
+    add("pass", "同時応募", "他公募へ応募中ではないと回答");
   }
 
-  if (profile.editing === "ai") {
-    if (opportunity.aiPolicy === "separate_category") {
-      add("check", "生成AI", "AI生成専用カテゴリーと通常写真部門の境界を確認");
+  if (profile.editing === "unknown") {
+    add("check", "編集", "編集方法が未回答。合成・生成AIは別条項として確認します");
+  } else if (profile.editing === "generated_origin") {
+    if (opportunity.aiPolicy === "photo_origin_required") {
+      add("fail", "生成AI", "作品の起点がアナログまたはデジタル写真である必要があります");
+    } else if (opportunity.aiPolicy === "separate_category") {
+      add("check", "生成AI", "AI生成専用カテゴリーの対象条件を確認してください");
     } else {
-      add("check", "生成AI", "生成AI・AI編集の扱いを最新要項で確認");
+      add("check", "生成AI", "AI生成作品の扱いを公式要項で確認してください");
     }
+  } else if (profile.editing === "generative_edit") {
+    add("check", "生成AI編集", "生成塗り足し・要素追加が操作規定に収まるか確認してください");
   } else if (profile.editing === "composite") {
+    add(opportunity.editPolicy === "allowed_with_disclosure" ? "check" : "check", "合成・大幅編集", "部門ごとの編集規定、素材の権利、申告方法を確認");
+  } else {
+    add(opportunity.editPolicy === "needs_check" ? "check" : "pass", "編集", opportunity.editPolicy === "needs_check" ? "基本補正の許容範囲も要項で未確認" : "基本補正として照合");
+  }
+
+  if (profile.ownsRights === "unknown") {
+    add("check", "著作権・応募権", "本人が単独の著作者で、応募できる権利を持つか未回答");
+  } else if (profile.ownsRights === "no") {
     add(
-      opportunity.editPolicy === "allowed_by_category" ? "check" : "check",
-      "合成・大幅編集",
-      "部門ごとの編集規定と、素材がすべて本人撮影かを確認",
+      opportunity.rightsPolicy === "explicit" ? "fail" : "check",
+      "著作権・応募権",
+      opportunity.rightsPolicy === "explicit"
+        ? "本人が著作者・権利者であることを求める応募枠です"
+        : "本人が権利を持たないと回答。公募固有の権利条項は未確認です",
     );
   } else {
-    add("pass", "編集", "基本補正・トリミングとして照合");
+    add(opportunity.rightsPolicy === "explicit" ? "pass" : "check", "著作権・応募権", opportunity.rightsPolicy === "explicit" ? "本人が権利を持つと回答" : "本人の権利は回答済み。公募固有の権利条項は要確認");
+  }
+
+  const mayContainPeople = profile.subjects.some((subject) => ["portrait", "street", "documentary"].includes(subject));
+  if (mayContainPeople) {
+    if (profile.peoplePermission === "unknown") {
+      add("check", "人物の許諾", "識別できる人物がいる場合の同意・モデルリリースが未回答");
+    } else if (profile.peoplePermission === "no") {
+      add(
+        opportunity.evidence.rights === "explicit" ? "fail" : "check",
+        "人物の許諾",
+        opportunity.evidence.rights === "explicit"
+          ? "人物の同意を求める要項と一致しません"
+          : "必要な許諾がないと回答。人物に関する公式条項は未確認です",
+      );
+    } else {
+      add("pass", "人物の許諾", profile.peoplePermission === "yes" ? "必要な同意があると回答" : "識別できる人物はいないと回答");
+    }
+  }
+
+  if (opportunity.evidence.deadline === "conflict") {
+    add("check", "締切時刻", opportunity.deadlineNote);
+  } else if (opportunity.evidence.deadline === "date_only") {
+    add("check", "締切時刻", opportunity.deadlineNote);
   }
 
   const preferenceMiss = profile.feePreference === "free" && opportunity.feeType === "paid";
@@ -342,6 +464,10 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
 
   const hasFail = checks.some((item) => item.kind === "fail");
   const hasCheck = checks.some((item) => item.kind === "check");
+  const fitMiss = checks.some((item) => item.kind === "fit");
+  const preparation = checks.filter((item) => item.kind === "prepare").length;
+  const evidenceValues = Object.values(opportunity.evidence);
+  const evidenceCovered = evidenceValues.filter((value) => value === "explicit" || value === "conditional").length;
   const verdict: Verdict = hasFail ? "ineligible" : hasCheck ? "needs_check" : "eligible";
   return {
     opportunity,
@@ -349,6 +475,10 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo): A
     checks,
     commonSubjects,
     unresolved: checks.filter((item) => item.kind === "check").length,
+    preparation,
+    fitMiss,
+    evidenceCovered,
+    evidenceTotal: evidenceValues.length,
     preferenceMiss,
   };
 }
@@ -438,7 +568,6 @@ export default function Home() {
   }, [photo]);
 
   const assessments = useMemo(() => {
-    if (!photo) return [];
     const verdictOrder: Record<Verdict, number> = { eligible: 0, needs_check: 1, ineligible: 2 };
     return opportunities
       .map((opportunity) => assess(opportunity, profile, photo))
@@ -447,6 +576,7 @@ export default function Home() {
           return verdictOrder[a.verdict] - verdictOrder[b.verdict];
         }
         if (a.preferenceMiss !== b.preferenceMiss) return Number(a.preferenceMiss) - Number(b.preferenceMiss);
+        if (a.fitMiss !== b.fitMiss) return Number(a.fitMiss) - Number(b.fitMiss);
         if (a.unresolved !== b.unresolved) return a.unresolved - b.unresolved;
         return parseDeadline(a.opportunity.deadline) - parseDeadline(b.opportunity.deadline);
       });
@@ -517,11 +647,6 @@ export default function Home() {
   }
 
   function runMeasure() {
-    if (!photo) {
-      setPhotoError("先に写真を選んでください。");
-      fileInputRef.current?.focus();
-      return;
-    }
     setMeasured(true);
     window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
   }
@@ -565,7 +690,7 @@ export default function Home() {
           <p className="eyebrow">ONE PHOTOGRAPH · MANY DESTINATIONS</p>
           <h1>この一枚を、<br /><em>どこへ出せるか。</em></h1>
           <p className="hero-lede">
-            傑作だと思う写真を机に置くように選んでください。応募条件と、公開された過去作を読む手掛かりを、同じ点数に混ぜずに並べます。
+            頭の中の一枚について条件を答えてください。写真は任意です。応募条件と、公開された過去作を読む手掛かりを、同じ点数に混ぜずに並べます。
           </p>
           <div className="hero-principles" aria-label="このサイトの原則">
             <span><b>01</b> 写真は端末内だけ</span>
@@ -597,8 +722,8 @@ export default function Home() {
               </div>
             )}
             <button className="file-trigger" type="button" onClick={() => fileInputRef.current?.click()}>
-              <span>{photo ? "別の写真を選ぶ" : "写真をここに置く"}</span>
-              <small>{photo ? "またはドラッグ＆ドロップ" : "ファイルを選ぶ / ドラッグ＆ドロップ"}</small>
+              <span>{photo ? "別の写真を選ぶ" : "写真を置く（任意）"}</span>
+              <small>{photo ? "またはドラッグ＆ドロップ" : "形式・容量・寸法も確認できます"}</small>
             </button>
             <input
               ref={fileInputRef}
@@ -611,7 +736,7 @@ export default function Home() {
           </div>
           <div className="privacy-slip">
             <span className="lock-dot" aria-hidden="true" />
-            <p><b>写真はアップロードされません。</b><br />ブラウザ内で開き、閉じれば消えます。</p>
+            <p><b>写真なしでも検索できます。</b><br />置いた写真は送信せず、閉じれば消えます。</p>
           </div>
         </div>
       </section>
@@ -632,7 +757,7 @@ export default function Home() {
               <Segmented
                 label="作品形式"
                 value={profile.workType}
-                options={[{ value: "single", label: "単写真" }, { value: "series", label: "シリーズ" }]}
+                options={[{ value: "unknown", label: "未回答" }, { value: "single", label: "単写真" }, { value: "series", label: "シリーズ" }]}
                 onChange={(value) => updateProfile("workType", value)}
               />
               {profile.workType === "series" && (
@@ -642,8 +767,9 @@ export default function Home() {
                     type="number"
                     min="2"
                     max="20"
-                    value={profile.seriesCount}
-                    onChange={(event) => updateProfile("seriesCount", Number(event.target.value))}
+                    value={profile.seriesCount ?? ""}
+                    placeholder="例 5"
+                    onChange={(event) => updateProfile("seriesCount", event.target.value ? Number(event.target.value) : null)}
                   />
                   <small>枚</small>
                 </label>
@@ -652,7 +778,7 @@ export default function Home() {
               <Segmented
                 label="カラー形式"
                 value={profile.tone}
-                options={[{ value: "color", label: "カラー" }, { value: "monochrome", label: "モノクロ" }]}
+                options={[{ value: "unknown", label: "未回答" }, { value: "color", label: "カラー" }, { value: "monochrome", label: "モノクロ" }]}
                 onChange={(value) => updateProfile("tone", value)}
               />
               <label className="number-field">
@@ -661,8 +787,9 @@ export default function Home() {
                   type="number"
                   min="1900"
                   max="2027"
-                  value={profile.shotYear}
-                  onChange={(event) => updateProfile("shotYear", Number(event.target.value))}
+                  value={profile.shotYear ?? ""}
+                  placeholder="例 2026"
+                  onChange={(event) => updateProfile("shotYear", event.target.value ? Number(event.target.value) : null)}
                 />
                 <small>年</small>
               </label>
@@ -697,6 +824,7 @@ export default function Home() {
               <h3>発表と編集</h3>
               <label>これまでの発表</label>
               <select value={profile.publication} onChange={(event) => updateProfile("publication", event.target.value as Profile["publication"])}>
+                <option value="unknown">未回答</option>
                 <option value="unpublished">未発表</option>
                 <option value="social">SNS・個人サイトのみ</option>
                 <option value="commercial">展示・出版・商用利用済み</option>
@@ -704,14 +832,19 @@ export default function Home() {
               </select>
               <label>編集の範囲</label>
               <select value={profile.editing} onChange={(event) => updateProfile("editing", event.target.value as Profile["editing"])}>
+                <option value="unknown">未回答・判断できない</option>
                 <option value="basic">色・明るさ・トリミングなど基本補正</option>
-                <option value="composite">合成・要素の追加削除・大幅編集</option>
-                <option value="ai">生成AIまたはAI生成要素を使用</option>
+                <option value="composite">自分の写真同士の合成・要素の追加削除</option>
+                <option value="generative_edit">生成塗り足し・生成AIによる要素の追加削除</option>
+                <option value="generated_origin">作品の起点がAI生成画像</option>
               </select>
-              <label className="check-row">
-                <input type="checkbox" checked={profile.otherContest} onChange={(event) => updateProfile("otherContest", event.target.checked)} />
-                <span>この写真、または類似カットを他のコンテストへ応募中</span>
-              </label>
+              <label>同じ写真・類似カットを他公募へ応募中か</label>
+              <Segmented
+                label="他公募への応募状況"
+                value={profile.otherContest}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "いいえ" }, { value: "yes", label: "はい" }]}
+                onChange={(value) => updateProfile("otherContest", value)}
+              />
             </div>
           </section>
 
@@ -721,18 +854,32 @@ export default function Home() {
               <h3>応募する人</h3>
               <label className="number-field">
                 <span>締切時点の年齢</span>
-                <input type="number" min="1" max="120" value={profile.age} onChange={(event) => updateProfile("age", Number(event.target.value))} />
+                <input type="number" min="1" max="120" value={profile.age ?? ""} placeholder="例 35" onChange={(event) => updateProfile("age", event.target.value ? Number(event.target.value) : null)} />
                 <small>歳</small>
               </label>
-              <label className="check-row">
-                <input type="checkbox" checked={profile.student} onChange={(event) => updateProfile("student", event.target.checked)} />
-                <span>高等教育で写真の授業・プログラムを履修中</span>
-              </label>
+              <label>高等教育で写真プログラムを履修中か</label>
+              <Segmented
+                label="写真プログラムの履修"
+                value={profile.student}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "いいえ" }, { value: "yes", label: "はい" }]}
+                onChange={(value) => updateProfile("student", value)}
+              />
+              {profile.student === "yes" && (
+                <>
+                  <label>所属教育機関がSonyの登録校か</label>
+                  <Segmented
+                    label="教育機関の登録"
+                    value={profile.institutionRegistered}
+                    options={[{ value: "unknown", label: "未確認" }, { value: "no", label: "いいえ" }, { value: "yes", label: "はい" }]}
+                    onChange={(value) => updateProfile("institutionRegistered", value)}
+                  />
+                </>
+              )}
               <label>活動区分</label>
               <Segmented
                 label="活動区分"
                 value={profile.role}
-                options={[{ value: "nonprofessional", label: "非プロ・収入の主ではない" }, { value: "professional", label: "写真収入が主" }]}
+                options={[{ value: "unknown", label: "未回答" }, { value: "nonprofessional", label: "写真収入が主ではない" }, { value: "professional", label: "写真収入が主" }]}
                 onChange={(value) => updateProfile("role", value)}
               />
               <label>応募費用の希望</label>
@@ -742,6 +889,20 @@ export default function Home() {
                 options={[{ value: "any", label: "有料も見る" }, { value: "free", label: "無料のみ優先" }]}
                 onChange={(value) => updateProfile("feePreference", value)}
               />
+              <label>作品の著作権・応募権を自分が持つか</label>
+              <Segmented
+                label="著作権と応募権"
+                value={profile.ownsRights}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "いいえ" }, { value: "yes", label: "はい" }]}
+                onChange={(value) => updateProfile("ownsRights", value)}
+              />
+              <label>識別できる人物の許諾</label>
+              <select value={profile.peoplePermission} onChange={(event) => updateProfile("peoplePermission", event.target.value as Profile["peoplePermission"])}>
+                <option value="unknown">未回答</option>
+                <option value="not_applicable">識別できる人物はいない</option>
+                <option value="yes">必要な同意・許諾がある</option>
+                <option value="no">必要な同意・許諾がない</option>
+              </select>
             </div>
           </section>
         </div>
@@ -762,28 +923,34 @@ export default function Home() {
         </div>
       </section>
 
-      {measured && photo && (
+      {measured && (
         <section className="results-section" ref={resultsRef} id="results" aria-labelledby="results-title">
           <div className="results-head">
             <div>
-              <p className="eyebrow">MEASURED AGAINST 12 ENTRY ROUTES</p>
+              <p className="eyebrow">MEASURED AGAINST {opportunities.length} ENTRY ROUTES</p>
               <h2 id="results-title">この一枚の候補</h2>
             </div>
             <div className="result-counts" aria-label="判定件数">
-              <span className="count-eligible"><b>{counts.eligible}</b> 適合</span>
+              <span className="count-eligible"><b>{counts.eligible}</b> 不一致なし</span>
               <span className="count-check"><b>{counts.needs_check}</b> 要確認</span>
               <span className="count-fail"><b>{counts.ineligible}</b> 不一致</span>
             </div>
           </div>
           <p className="results-note">
-            これは受賞可能性ではありません。掲載要項の明示条件と、入力したカルテに不一致があるかを確認した結果です。
+            これは受賞可能性ではありません。未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
           </p>
+          <div className="precision-legend" aria-label="判定記号の説明">
+            <span><b>×</b> 明示条件の不一致</span>
+            <span><b>△</b> 未回答・公式未確認</span>
+            <span><b>↺</b> 書き出しで調整</span>
+            <span><b>◇</b> 部門候補の参考</span>
+          </div>
 
           <div className="results-list">
             {assessments.map((assessment, index) => {
               const meta = verdictMeta[assessment.verdict];
               const savedAlready = saved.includes(assessment.opportunity.id);
-              const proximity = deadlineProximity(assessment.opportunity.deadline);
+              const proximity = deadlineProximity(assessment.opportunity);
               const primaryChecks = assessment.checks.filter((item) => item.kind !== "pass").slice(0, 4);
               return (
                 <article className={`result-row verdict-${assessment.verdict}`} key={assessment.opportunity.id}>
@@ -799,27 +966,28 @@ export default function Home() {
                     <dl className="result-facts">
                       <div><dt>締切</dt><dd>{assessment.opportunity.deadlineLabel}{proximity && <em>{proximity}</em>}</dd></div>
                       <div><dt>費用</dt><dd>{assessment.opportunity.feeLabel}{assessment.preferenceMiss && <em>希望外</em>}</dd></div>
-                      <div><dt>部門との共通点</dt><dd>{assessment.commonSubjects.length ? assessment.commonSubjects.map((subject) => subjectLabels[subject]).join("・") : assessment.opportunity.subjects.includes("all") ? "題材を限定しない応募枠" : "なし"}</dd></div>
+                      <div><dt>部門との共通点</dt><dd>{assessment.commonSubjects.length ? assessment.commonSubjects.map((subject) => subjectLabels[subject]).join("・") : assessment.opportunity.subjects.includes("all") && assessment.opportunity.categorySelectionRequired ? "公式画面で部門選択" : assessment.opportunity.subjects.includes("all") ? "題材を限定しない応募枠" : "自己申告タグとの共通なし"}</dd></div>
+                      <div><dt>公式根拠の確認範囲</dt><dd>{assessment.evidenceCovered}/{assessment.evidenceTotal}条項{assessment.preparation > 0 && <em>提出準備 {assessment.preparation}件</em>}</dd></div>
                     </dl>
 
                     {primaryChecks.length > 0 ? (
                       <ul className="check-list">
                         {primaryChecks.map((check, checkIndex) => (
                           <li className={`check-${check.kind}`} key={`${check.label}-${checkIndex}`}>
-                            <span>{check.kind === "fail" ? "×" : check.kind === "preference" ? "↘" : "?"}</span>
+                            <span>{check.kind === "fail" ? "×" : check.kind === "preference" ? "↘" : check.kind === "prepare" ? "↺" : check.kind === "fit" ? "◇" : "?"}</span>
                             <p><b>{check.label}</b>{check.detail}</p>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="all-pass">入力した範囲では、明示条件の不一致は見つかりませんでした。</p>
+                      <p className="all-pass">回答済み項目と確認済み要項の範囲では、不一致は見つかりませんでした。</p>
                     )}
 
                     <details>
                       <summary>確認した条件をすべて見る</summary>
                       <ul className="all-checks">
                         {assessment.checks.map((check, checkIndex) => (
-                          <li key={`${check.label}-all-${checkIndex}`}><span>{check.kind === "pass" ? "○" : check.kind === "fail" ? "×" : check.kind === "preference" ? "↘" : "△"}</span><b>{check.label}</b>{check.detail}</li>
+                          <li key={`${check.label}-all-${checkIndex}`}><span>{check.kind === "pass" ? "○" : check.kind === "fail" ? "×" : check.kind === "preference" ? "↘" : check.kind === "prepare" ? "↺" : check.kind === "fit" ? "◇" : "△"}</span><b>{check.label}</b>{check.detail}</li>
                         ))}
                       </ul>
                       <p className="warning-line"><b>応募前の注意</b>{assessment.opportunity.warning}</p>
@@ -906,10 +1074,13 @@ export default function Home() {
           <div><b>写真コンテストものさし</b><small>一枚の行き先を、根拠から測る。</small></div>
         </div>
         <div className="footer-copy">
-          <p>掲載情報は2026年7月22日に各主催者の公式ページで確認した実証用MVPです。応募前に必ず最新要項をご確認ください。</p>
+          <p>掲載情報は2026年7月23日に各主催者の公式ページで再確認した実証用MVPです。応募前に必ず最新要項をご確認ください。</p>
           <p>写真は送信・保存しません。カルテと「あとで見る」のIDだけをこの端末に保存します。</p>
         </div>
-        <a href="#method">調べ方と判定の限界</a>
+        <nav className="footer-links" aria-label="補足情報">
+          <a href="/quality-report.html" target="_blank" rel="noreferrer">精度監査レポート ↗</a>
+          <a href="#method">調べ方と判定の限界</a>
+        </nav>
       </footer>
 
       {savedOpen && (
