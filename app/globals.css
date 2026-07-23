@@ -582,6 +582,13 @@ summary:focus-visible {
   font-size: 12px;
 }
 
+.field-note {
+  margin: 7px 0 0;
+  color: var(--ink-soft);
+  font-size: 9px;
+  line-height: 1.65;
+}
+
 .check-row {
   display: flex;
   min-height: 49px;
@@ -650,6 +657,169 @@ summary:focus-visible {
 .file-facts b { overflow: hidden; color: var(--ink); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .photo-error { grid-column: 1 / -1; margin: 0; padding: 10px 14px; border-left: 3px solid var(--yellow); background: rgba(255, 244, 212, 0.65); color: #694b1c; font-size: 11px; line-height: 1.6; }
 
+.local-coverage {
+  width: min(1260px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 34px 0 96px;
+}
+
+.coverage-heading {
+  display: grid;
+  align-items: end;
+  gap: 34px;
+  padding: 23px 0 22px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--line-dark);
+  grid-template-columns: minmax(300px, 0.8fr) minmax(340px, 1fr);
+}
+
+.coverage-heading > div > p {
+  margin: 0 0 8px;
+  color: var(--safe-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.coverage-heading h2 {
+  margin: 0;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: clamp(31px, 4vw, 49px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.coverage-heading > p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.85;
+}
+
+.coverage-tally {
+  display: grid;
+  margin-top: 22px;
+  border-top: 1px solid var(--line-dark);
+  border-left: 1px solid var(--line-dark);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.coverage-tally span {
+  display: grid;
+  min-height: 76px;
+  align-content: center;
+  gap: 3px;
+  padding: 10px 17px;
+  border-right: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+}
+
+.coverage-tally b {
+  color: var(--safe-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 24px;
+}
+
+.coverage-tally small {
+  color: var(--ink-soft);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.coverage-instruction {
+  margin: 17px 0 13px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.prefecture-grid {
+  display: grid;
+  border-top: 1px solid var(--line);
+  border-left: 1px solid var(--line);
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+}
+
+.prefecture-grid button {
+  position: relative;
+  display: grid;
+  min-height: 76px;
+  align-content: space-between;
+  gap: 4px;
+  padding: 8px 9px 9px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: rgba(251, 247, 237, 0.26);
+  color: var(--ink-soft);
+  cursor: pointer;
+  text-align: left;
+}
+
+.prefecture-grid button:hover {
+  z-index: 1;
+  background: var(--paper-light);
+  box-shadow: inset 0 0 0 1px var(--line-dark);
+}
+
+.prefecture-grid button small {
+  color: var(--line-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 7px;
+}
+
+.prefecture-grid button span {
+  color: var(--ink);
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.prefecture-grid button b {
+  justify-self: start;
+  color: var(--line-dark);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 8px;
+}
+
+.prefecture-grid button.is-covered {
+  background:
+    linear-gradient(135deg, rgba(181, 71, 47, 0.13), transparent 55%),
+    rgba(251, 247, 237, 0.72);
+}
+
+.prefecture-grid button.is-covered::after {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--safe);
+  content: "";
+}
+
+.prefecture-grid button.is-covered b { color: var(--safe-dark); }
+
+.prefecture-grid button.is-missing {
+  background-image: repeating-linear-gradient(-45deg, transparent 0 7px, rgba(117, 108, 94, 0.045) 7px 8px);
+}
+
+.prefecture-grid button.is-current {
+  z-index: 2;
+  box-shadow: inset 0 0 0 3px var(--ink);
+}
+
+.coverage-caveat {
+  margin: 15px 0 0;
+  padding-left: 15px;
+  border-left: 3px solid var(--safe);
+  color: var(--ink-soft);
+  font-size: 10px;
+  line-height: 1.75;
+}
+
 .results-section { padding-top: 90px; }
 .results-head { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding-bottom: 24px; border-bottom: 2px solid var(--ink); }
 .results-head h2 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: clamp(34px, 4vw, 54px); font-weight: 500; letter-spacing: -0.04em; }
@@ -694,7 +864,7 @@ summary:focus-visible {
 .verdict-needs_check .verdict-label { color: var(--yellow); }
 .verdict-ineligible .verdict-label { color: var(--red); }
 
-.result-facts { display: grid; margin: 21px 0 16px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); grid-template-columns: 1.08fr 0.68fr 0.82fr 1fr 0.92fr; }
+.result-facts { display: grid; margin: 21px 0 16px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); grid-template-columns: 1.08fr 0.65fr 0.82fr 0.95fr 1fr 0.92fr; }
 .result-facts > div { min-width: 0; padding: 10px 12px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .result-facts dt { margin-bottom: 5px; color: var(--ink-soft); font-size: 9px; font-weight: 800; letter-spacing: 0.06em; }
 .result-facts dd { margin: 0; font-size: 11px; line-height: 1.6; }
@@ -891,7 +1061,8 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .file-trigger small { display: none; }
   .privacy-slip { right: 5px; width: 82%; }
   .passport-section,
-  .results-section { width: min(100% - 28px, 620px); padding: 72px 0; }
+  .results-section,
+  .local-coverage { width: min(100% - 28px, 620px); padding: 72px 0; }
   .section-heading { display: block; margin-bottom: 23px; }
   .section-heading > p { margin-bottom: 7px; }
   .section-heading h2 { margin-bottom: 14px; font-size: 37px; }
@@ -905,6 +1076,12 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .measure-actions { grid-template-columns: 1fr auto; }
   .measure-button { grid-column: 1 / -1; min-height: 62px; }
   .file-facts { max-width: 62%; }
+  .coverage-heading { display: block; }
+  .coverage-heading > p { margin-top: 16px; font-size: 11px; }
+  .coverage-tally span { min-height: 68px; padding: 9px 11px; }
+  .coverage-tally b { font-size: 20px; }
+  .prefecture-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .prefecture-grid button { min-height: 72px; }
   .results-head { display: block; }
   .result-counts { margin-top: 19px; justify-content: space-between; gap: 8px; }
   .result-counts b { font-size: 20px; }
@@ -951,6 +1128,9 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .privacy-slip { width: 90%; }
   .subject-grid { grid-template-columns: 1fr; }
   .number-field { grid-template-columns: 1fr 78px 18px; }
+  .coverage-tally { grid-template-columns: 1fr; }
+  .coverage-tally span { min-height: 54px; }
+  .prefecture-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .result-actions { margin-left: 36px; }
 }
 
@@ -969,5 +1149,6 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .hero,
   .passport-section,
   .results-section,
+  .local-coverage,
   .channels-section { width: 100%; }
 }

@@ -25,6 +25,7 @@ type Subject =
 type Profile = {
   shotYear: number | null;
   shotDate: string;
+  capturePrefecture: string;
   workType: "unknown" | "single" | "series";
   seriesCount: number | null;
   tone: "unknown" | "color" | "monochrome";
@@ -81,6 +82,7 @@ type Opportunity = {
   requiredAccountTag?: string;
   requiredTags?: string[];
   entryLimit?: number;
+  shootingPrefectures?: string[];
   shotLocationRule?: string;
   entrantRole: "all" | "professional" | "nonprofessional";
   entrantAge: "all" | "adult" | "youth";
@@ -214,6 +216,56 @@ const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
 const MARKET_KEY = "photo-monosashi-market-v1";
 
+const prefectures = [
+  "北海道",
+  "青森県",
+  "岩手県",
+  "宮城県",
+  "秋田県",
+  "山形県",
+  "福島県",
+  "茨城県",
+  "栃木県",
+  "群馬県",
+  "埼玉県",
+  "千葉県",
+  "東京都",
+  "神奈川県",
+  "新潟県",
+  "富山県",
+  "石川県",
+  "福井県",
+  "山梨県",
+  "長野県",
+  "岐阜県",
+  "静岡県",
+  "愛知県",
+  "三重県",
+  "滋賀県",
+  "京都府",
+  "大阪府",
+  "兵庫県",
+  "奈良県",
+  "和歌山県",
+  "鳥取県",
+  "島根県",
+  "岡山県",
+  "広島県",
+  "山口県",
+  "徳島県",
+  "香川県",
+  "愛媛県",
+  "高知県",
+  "福岡県",
+  "佐賀県",
+  "長崎県",
+  "熊本県",
+  "大分県",
+  "宮崎県",
+  "鹿児島県",
+  "沖縄県",
+] as const;
+
 const subjectLabels: Record<Subject, string> = {
   animals: "動物・ペット",
   portrait: "人物・ポートレート",
@@ -232,6 +284,7 @@ const subjectLabels: Record<Subject, string> = {
 const defaultProfile: Profile = {
   shotYear: null,
   shotDate: "",
+  capturePrefecture: "unknown",
   workType: "unknown",
   seriesCount: null,
   tone: "unknown",
@@ -287,6 +340,10 @@ function normalizeProfile(value: Partial<Profile>): Profile {
     ...value,
     shotYear: value.shotYear ? Number(value.shotYear) : null,
     shotDate: typeof value.shotDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.shotDate) ? value.shotDate : "",
+    capturePrefecture:
+      typeof value.capturePrefecture === "string" && prefectures.includes(value.capturePrefecture as (typeof prefectures)[number])
+        ? value.capturePrefecture
+        : "unknown",
     seriesCount: value.seriesCount ? Number(value.seriesCount) : null,
     age: value.age ? Number(value.age) : null,
     subjects,
@@ -455,8 +512,18 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     add("check", "撮影・公開時期", "未公開作品と公開済み作品で条件が異なるため要項を確認");
   }
 
+  if (opportunity.shootingPrefectures?.length) {
+    if (profile.capturePrefecture === "unknown") {
+      add("check", "撮影都道府県", `${opportunity.shootingPrefectures.join("・")}で撮影した作品が対象。撮影地を回答してください`);
+    } else if (opportunity.shootingPrefectures.includes(profile.capturePrefecture)) {
+      add("pass", "撮影都道府県", `${profile.capturePrefecture}は対象地域に含まれます`);
+    } else {
+      add("fail", "撮影都道府県", `${opportunity.shootingPrefectures.join("・")}で撮影した作品が対象です`);
+    }
+  }
+
   if (opportunity.shotLocationRule) {
-    add("check", "撮影地", opportunity.shotLocationRule);
+    add("check", opportunity.shootingPrefectures?.length ? "撮影地域の詳細" : "撮影地", opportunity.shotLocationRule);
   }
 
   const allSubjects = opportunity.subjects.includes("all");
@@ -915,6 +982,19 @@ export default function Home() {
     );
   }, [assessments]);
 
+  const localRouteCounts = useMemo(() => {
+    return opportunities
+      .filter((opportunity) => opportunity.marketScope === "domestic" && opportunity.shootingPrefectures?.length)
+      .reduce((countsByPrefecture, opportunity) => {
+        opportunity.shootingPrefectures?.forEach((prefecture) => {
+          countsByPrefecture[prefecture] = (countsByPrefecture[prefecture] ?? 0) + 1;
+        });
+        return countsByPrefecture;
+      }, {} as Record<string, number>);
+  }, []);
+
+  const coveredPrefectureCount = Object.keys(localRouteCounts).length;
+
   const filteredAssessments = useMemo(() => {
     return marketFilter === "all"
       ? assessments
@@ -1021,6 +1101,13 @@ export default function Home() {
     }
   }
 
+  function choosePrefecture(prefecture: string) {
+    updateProfile("capturePrefecture", prefecture);
+    setMarketFilter("domestic");
+    setMeasured(true);
+    window.setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
+  }
+
   return (
     <main>
       <header className="site-header">
@@ -1031,6 +1118,7 @@ export default function Home() {
         </a>
         <nav aria-label="メインナビゲーション">
           <a href="#measure">この写真を測る</a>
+          <a href="#local-coverage">地方公募の空白</a>
           <a href="#channels">フォーム以外の入口</a>
           <a href="#trends">過去作の手掛かり</a>
           <button type="button" onClick={() => setSavedOpen(true)}>
@@ -1168,6 +1256,12 @@ export default function Home() {
                   }));
                 }}
               />
+              <label>撮影した都道府県</label>
+              <select value={profile.capturePrefecture} onChange={(event) => updateProfile("capturePrefecture", event.target.value)}>
+                <option value="unknown">未回答・日本国外</option>
+                {prefectures.map((prefecture) => <option value={prefecture} key={prefecture}>{prefecture}</option>)}
+              </select>
+              <p className="field-note">市町村・施設など、都道府県より細かい対象範囲は候補ごとに「要確認」として残します。</p>
               <label>撮影したカメラ／端末</label>
               <select value={profile.captureDevice} onChange={(event) => updateProfile("captureDevice", event.target.value as Profile["captureDevice"])}>
                 <option value="unknown">未回答・不明</option>
@@ -1344,6 +1438,48 @@ export default function Home() {
         </div>
       </section>
 
+      <section className="local-coverage" id="local-coverage" aria-labelledby="local-coverage-title">
+        <div className="coverage-heading">
+          <div>
+            <p>47-PREFECTURE RESEARCH LEDGER</p>
+            <h2 id="local-coverage-title">地方公募の調査台帳</h2>
+          </div>
+          <p>
+            地方自治体・観光協会などの公式要項をたどり、撮影地が限定される小規模公募を県単位で記録しています。色のない県は「公募がない」のではなく、現行募集をまだ収録できていない調査空白です。
+          </p>
+        </div>
+        <div className="coverage-tally" aria-label="地方公募の調査状況">
+          <span><b>{coveredPrefectureCount}</b><small>確認済みの都道府県</small></span>
+          <span><b>{prefectures.length - coveredPrefectureCount}</b><small>未収録・確認中</small></span>
+          <span><b>{Object.values(localRouteCounts).reduce((total, count) => total + count, 0)}</b><small>地域限定ルート</small></span>
+        </div>
+        <p className="coverage-instruction">県名を選ぶと、その撮影地を作品カルテへ入れて国内公募の判定結果へ移動します。</p>
+        <div className="prefecture-grid">
+          {prefectures.map((prefecture, index) => {
+            const routeCount = localRouteCounts[prefecture] ?? 0;
+            const covered = routeCount > 0;
+            const selected = profile.capturePrefecture === prefecture;
+            return (
+              <button
+                type="button"
+                key={prefecture}
+                className={`${covered ? "is-covered" : "is-missing"}${selected ? " is-current" : ""}`}
+                aria-pressed={selected}
+                onClick={() => choosePrefecture(prefecture)}
+                title={covered ? `${routeCount}件の地域限定ルートを確認済み` : "現行募集を未収録・確認中"}
+              >
+                <small>{String(index + 1).padStart(2, "0")}</small>
+                <span>{prefecture}</span>
+                <b>{covered ? `${routeCount}件` : "空白"}</b>
+              </button>
+            );
+          })}
+        </div>
+        <p className="coverage-caveat">
+          収録基準は、主催者の公式ページで現在または次回の募集期間を確認できることです。募集回の表示が古い、日付が食い違う、要項PDFを確認できない場合は候補数へ入れません。
+        </p>
+      </section>
+
       {measured && (
         <section className="results-section" ref={resultsRef} id="results" aria-labelledby="results-title">
           <div className="results-head">
@@ -1358,7 +1494,7 @@ export default function Home() {
             </div>
           </div>
           <p className="results-note">
-            これは受賞可能性ではありません。未回答を推測で埋めず、確認できない条件は「要確認」に残します。国内は主催者所在地が日本の公募、海外・国際はそれ以外として分類し、日本から応募できるかは各カードの「応募地域」で別に確認します。
+            これは受賞可能性ではありません。未回答を推測で埋めず、確認できない条件は「要確認」に残します。国内は主催者所在地が日本の公募、海外・国際はそれ以外として分類します。地方公募では撮影都道府県を先に照合し、市町村・施設など細かな境界は「撮影地域の詳細」で公式要項へ戻します。
           </p>
           <div className="market-filter" role="group" aria-label="国内・海外の表示切替">
             <button type="button" className={marketFilter === "all" ? "is-selected" : ""} aria-pressed={marketFilter === "all"} onClick={() => setMarketFilter("all")}>
@@ -1403,6 +1539,7 @@ export default function Home() {
                       <div><dt>締切</dt><dd>{assessment.opportunity.deadlineLabel}{proximity && <em>{proximity}</em>}</dd></div>
                       <div><dt>費用</dt><dd>{assessment.opportunity.feeLabel}{assessment.preferenceMiss && <em>希望外</em>}</dd></div>
                       <div><dt>応募地域</dt><dd>{assessment.opportunity.applicantScope === "worldwide" ? "世界各国から応募可" : assessment.opportunity.applicantScopeLabel ?? "公式要項で確認"}{assessment.opportunity.entryLanguage && <em>{assessment.opportunity.entryLanguage}</em>}</dd></div>
+                      <div><dt>撮影地域</dt><dd>{assessment.opportunity.shotLocationRule ?? "撮影地の指定なし／公式要項で確認"}</dd></div>
                       <div><dt>部門との共通点</dt><dd>{assessment.commonSubjects.length ? assessment.commonSubjects.map((subject) => subjectLabels[subject]).join("・") : assessment.opportunity.subjects.includes("all") && assessment.opportunity.categorySelectionRequired ? "公式画面で部門選択" : assessment.opportunity.subjects.includes("all") ? "題材を限定しない応募枠" : "自己申告タグとの共通なし"}</dd></div>
                       <div><dt>公式根拠の確認範囲</dt><dd>{assessment.evidenceCovered}/{assessment.evidenceTotal}条項{assessment.preparation > 0 && <em>提出準備 {assessment.preparation}件</em>}</dd></div>
                     </dl>

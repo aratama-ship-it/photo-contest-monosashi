@@ -57,6 +57,27 @@ const officialHosts = new Set([
   "www.bdk.or.jp",
   "nationalparksjp-photocontest.com",
   "www.kinkan.co.jp",
+  "www.city.utashinai.hokkaido.jp",
+  "www.pref.iwate.jp",
+  "www.kanko-hanawa.com",
+  "www.city.soka.saitama.jp",
+  "www.pref.niigata.lg.jp",
+  "www.town.iijima.lg.jp",
+  "www.town-ono.jp",
+  "shigaphotocon.biwako-visitors.jp",
+  "www.miyajima.or.jp",
+  "higashikagawa.net",
+  "tosacity-kankou.com",
+  "www.city.goto.nagasaki.jp",
+]);
+const prefectures = new Set([
+  "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+  "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+  "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県",
+  "岐阜県", "静岡県", "愛知県", "三重県", "滋賀県", "京都府", "大阪府",
+  "兵庫県", "奈良県", "和歌山県", "鳥取県", "島根県", "岡山県", "広島県",
+  "山口県", "徳島県", "香川県", "愛媛県", "高知県", "福岡県", "佐賀県",
+  "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県",
 ]);
 const discoveryOfficialHosts = new Set([
   "www.nationalgeographic.com",
@@ -82,9 +103,9 @@ const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
 assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
-assert.equal(domesticOpportunities.length, 12, "expected 12 independently audited domestic entry routes");
+assert.equal(domesticOpportunities.length, 24, "expected 24 independently audited domestic entry routes");
 assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
-assert.equal(opportunities.length, 41, "expected 41 independently selectable entry routes");
+assert.equal(opportunities.length, 53, "expected 53 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
 assert.equal(
@@ -152,6 +173,19 @@ assert.ok(
     .filter((item) => item.applicantScope === "limited")
     .every((item) => item.eligibleFromJapan && item.eligibleResidenceGroups?.includes("japan")),
   "residence-limited domestic routes must explicitly retain Japan eligibility",
+);
+
+const localRoutes = domesticOpportunities.filter((item) => item.shootingPrefectures?.length);
+const coveredPrefectures = new Set(localRoutes.flatMap((item) => item.shootingPrefectures));
+assert.equal(localRoutes.length, 12, "expected 12 officially audited local shooting-area routes");
+assert.equal(coveredPrefectures.size, 12, "the first local audit must cover 12 distinct prefectures");
+assert.ok(
+  localRoutes.every((item) => item.shotLocationRule && item.shootingPrefectures.every((prefecture) => prefectures.has(prefecture))),
+  "local routes must include a detailed shooting-area rule and valid Japanese prefectures",
+);
+assert.ok(
+  opportunities.filter((item) => item.shootingPrefectures?.length).every((item) => domesticOpportunities.includes(item)),
+  "shooting-prefecture routes must remain in the domestic dataset",
 );
 
 const sonySingle = opportunities.filter((item) => item.id.startsWith("sony-single-"));
@@ -258,6 +292,18 @@ assert.equal(kinkan?.submissionMethod, "hybrid", "Kinkan must retain form and so
 assert.equal(kinkan?.maxFileMB, 5, "Kinkan form submissions have a 5MB limit");
 assert.equal(kinkan?.evidence.deadline, "date_only", "Kinkan deadline time remains confirmation-required");
 
+const utashinai = domesticOpportunities.find((item) => item.id === "utashinai-smallest-photo-contest-2026");
+assert.deepEqual(utashinai?.shootingPrefectures, ["北海道"], "Utashinai must retain its Hokkaido shooting-area gate");
+assert.equal(utashinai?.workType, "single", "Utashinai accepts a single horizontal work");
+
+const iijima = domesticOpportunities.find((item) => item.id === "iijima-event-photo-contest-2026");
+assert.equal(iijima?.submissionMethod, "hybrid", "Iijima must retain print and Instagram routes");
+assert.deepEqual(iijima?.shootingPrefectures, ["長野県"], "Iijima must retain its Nagano shooting-area gate");
+
+const gotoIslands = domesticOpportunities.find((item) => item.id === "goto-world-heritage-island-photo-2026");
+assert.deepEqual(gotoIslands?.shootingPrefectures, ["長崎県"], "Goto must retain its Nagasaki shooting-area gate");
+assert.equal(gotoIslands?.maxFileMB, 15, "Goto web entry allows files up to 15MB");
+
 const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
 assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
 assert.equal(natGeo?.publicAccount, "required", "NatGeo Your Shot requires a public account");
@@ -308,6 +354,9 @@ console.log(JSON.stringify({
   routes: opportunities.length,
   domesticRoutes: domesticOpportunities.length,
   internationalRoutes: opportunities.length - domesticOpportunities.length,
+  localRoutes: localRoutes.length,
+  coveredPrefectures: coveredPrefectures.size,
+  missingPrefectures: prefectures.size - coveredPrefectures.size,
   worldwideAdded: worldwideOpportunities.length,
   socialDeadlineRoutes: socialOpportunities.length,
   discoveryChannels: discoveryChannels.length,

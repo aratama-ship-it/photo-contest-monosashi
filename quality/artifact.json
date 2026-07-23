@@ -10,7 +10,7 @@
       {
         "id": "evidence_coverage_chart",
         "title": "公式根拠ステータスの件数",
-        "subtitle": "41応募ルート × 8条項 = 328セル（2026年7月23日時点）",
+        "subtitle": "53応募ルート × 8条項 = 424セル（2026年7月23日時点）",
         "type": "bar",
         "dataset": "evidence_states",
         "sourceId": "audit_data_sql",
@@ -96,13 +96,13 @@
       {
         "id": "executive_summary",
         "type": "markdown",
-        "body": "## Executive Summary\n\n- **応募判定は41ルート、探索先は11入口になりました。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **国内12件と海外・国際29件を主催者所在地で切り替えます。** 応募者の居住地条件とは分離し、各カードで日本から応募できるかを別に確認します。\n- **国内側を11ルート増やしました。** キヤノン、富士フイルム、タムロン、仏教伝道協会、環境省、キンカンの公式要項を、応募方法や年齢部門の違いごとに分けています。\n- **探索先も作品条件で照合します。** 撮影日、単写真／シリーズ、SNS公開、外部サービス登録、撮影機材、新作撮影可否から「使える見込み」「準備・確認あり」「今回の条件外」を返します。\n- **応募ルートは328セル中265セル（80.8%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 未記載・未調査・公式内不一致は○へ繰り上げません。\n- **入口を原子的に分けました。** プリント／Web、一般／U-18、PhotoVogue Monday／完成プロジェクトなど、使える作品や提出方法が変わる入口を別ルートにしています。"
+        "body": "## Executive Summary\n\n- **応募判定は53ルート、探索先は11入口になりました。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **国内24件と海外・国際29件を主催者所在地で切り替えます。** 応募者の居住地条件、作品の撮影地条件とは分離して照合します。\n- **地方の小規模公募を12ルート追加しました。** 北海道から九州まで12県で、自治体・観光協会などの公式要項を確認しました。残る35県は「公募なし」ではなく未収録・確認中です。\n- **撮影都道府県を判定条件に加えました。** 県の一致を先に照合し、市町村・施設・道路などの細かな範囲は公式要項での確認事項として残します。\n- **応募ルートは424セル中321セル（75.7%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 地方公募で未確認条項も増えましたが、未記載・未調査・公式内不一致を○へ繰り上げません。\n- **入口を原子的に分けました。** プリント／Web、一般／U-18、フォーム／ハッシュタグなど、使える作品や提出方法が変わる入口を区別します。"
       },
       {
         "id": "coverage_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## 80.8%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の265セルに対し、公式内の不一致15セル、締切日だけを確認した14セル、未記載19セル、未調査15セルがあります。後者63セルは安全側に倒し、回答が合っていても「要確認」とします。"
+        "body": "## 75.7%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の321セルに対し、公式内の不一致15セル、締切日だけを確認した23セル、未記載33セル、未調査32セルがあります。後者103セルは安全側に倒し、回答が合っていても「要確認」とします。地方の募集概要だけでは詳細条項を埋めず、情報が薄いことを見えるままにしています。"
       },
       {
         "id": "worldwide_finding",
@@ -113,7 +113,12 @@
       {
         "id": "market_scope_finding",
         "type": "markdown",
-        "body": "## 国内と海外は、名称ではなく主催者所在地で分ける\n\n「国内公募」は主催者所在地が日本のルート、「海外・国際公募」はそれ以外としました。国内側は[JPSノンフィクション写真賞](https://www.jps.gr.jp/nonfiction-_submission/)に加え、キヤノン、富士フイルム、タムロン、仏教伝道協会、環境省、キンカンの公式募集から12ルートになりました。Tokyo International Foto Awardsは名称にTokyoを含みますが、公式プライバシーポリシーの登録事務所が米国ロサンゼルスのため海外・国際側です。応募者の居住地制限や日本から参加できるかは、地域区分と混同せず各カードで別に表示します。"
+        "body": "## 国内と海外は、名称ではなく主催者所在地で分ける\n\n「国内公募」は主催者所在地が日本のルート、「海外・国際公募」はそれ以外としました。国内側は全国規模12ルートと地方限定12ルートの計24ルートです。Tokyo International Foto Awardsは名称にTokyoを含みますが、公式プライバシーポリシーの登録事務所が米国ロサンゼルスのため海外・国際側です。応募者の居住地制限、作品の撮影地、日本から参加できるかは、地域区分と混同せず各カードで別に表示します。"
+      },
+      {
+        "id": "local_coverage_finding",
+        "type": "markdown",
+        "body": "## 12/47は達成率ではなく、調査空白を見せる台帳\n\n現行または次回募集を公式ページで確認できた地域限定ルートは、北海道・岩手・福島・埼玉・新潟・長野・岐阜・滋賀・広島・香川・高知・長崎の12県です。残る35県は「該当公募なし」と断定せず、未収録・確認中として画面に残します。市町村名、特定イベント、道路、世界遺産構成資産周辺など、県より細かな撮影範囲は自動で○にせず、公式要項へ戻す確認事項です。"
       },
       {
         "id": "evidence_coverage_block",
@@ -155,17 +160,17 @@
       {
         "id": "next_steps",
         "type": "markdown",
-        "body": "## 次に精度を上げる順序\n\n1. 国内5ルートで日付だけ確認できた締切時刻・郵送基準を応募画面または事務局情報で補う。\n2. 国内ルートで未記載の応募料を確認し、無料とは断定しない状態を解消する。\n3. 仏教伝道協会の作品利用・権利条項を公式規約で補う。\n4. 11探索先のうち、未調査になっている権利条項7セルを公式規約で補う。\n5. 月・週ごとに変わるテーマ、タグ、締切を更新する運用を設計する。\n6. BIFAの最小寸法と、ND Awards・BIFA・FAPAの締切時刻を応募画面で確認する。"
+        "body": "## 次に精度を上げる順序\n\n1. 未収録の35県を、自治体、観光協会、地域文化団体の順で公式サイトから探索する。\n2. 追加した地方12ルートの締切時刻・郵送基準を応募画面または詳細要項で補う。\n3. 新潟・土佐など募集概要だけでは不足する技術仕様、加工、発表歴、権利を詳細要項で補う。\n4. 国内ルートで未記載の応募料を確認し、無料とは断定しない状態を解消する。\n5. 11探索先の未調査の権利条項を公式規約で補う。\n6. 月・週ごとに変わるテーマ、タグ、締切を更新する運用を設計する。"
       },
       {
         "id": "further_questions",
         "type": "markdown",
-        "body": "## Further Questions\n\n- 月替わり・週替わりテーマを公式投稿から安全に更新し、変更履歴を残せるか。\n- Instagram、Flickr以外のニュースレター、Discord、オープン投稿をどの信頼基準で追加するか。\n- プラットフォーム型の個別コンテストを、いつ固定締切の応募候補へ昇格させるか。\n- 過去作の傾向は、部門別・年度別に何点を見れば「観察範囲」として十分か。"
+        "body": "## Further Questions\n\n- 残る35県で、募集名が固定されず毎年別ページになる小規模公募をどう追跡するか。\n- 市町村・観光協会・指定管理者・商工会の重複を、漏れと二重収録なしで管理できるか。\n- 月替わり・週替わりテーマを公式投稿から安全に更新し、変更履歴を残せるか。\n- プラットフォーム型の個別コンテストを、いつ固定締切の応募候補へ昇格させるか。\n- 過去作の傾向は、部門別・年度別に何点を見れば「観察範囲」として十分か。"
       },
       {
         "id": "caveats",
         "type": "markdown",
-        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。41ルートは世界中の全コンテストを網羅したものではなく、11の探索先も掲載・受賞を保証しません。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。追加確認対象: [Flickr Monthly Photo Challenge](https://www.flickr.com/groups/flickrmonthlyphotochallenge/)、[Flickr Friday](https://www.flickr.com/groups/flickrfriday/)、[LFI Gallery FAQ](https://lfi-online.de/en/gallery/faq.html)、[VIEWBUG contests](https://www.viewbug.com/photo-contests/free)。"
+        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。53ルートは世界中・日本全国の全コンテストを網羅したものではなく、12/47都道府県は現時点の公式確認範囲です。未収録県にも公募が存在する可能性があります。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。"
       }
     ]
   },
@@ -175,12 +180,12 @@
     "status": "ready",
     "datasets": {
       "evidence_states": [
-        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 226, "share_percent": 68.9, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
-        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 39, "share_percent": 11.9, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
-        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 15, "share_percent": 4.6, "screen_treatment": "要確認", "rank": 3 },
-        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 19, "share_percent": 5.8, "screen_treatment": "要確認", "rank": 4 },
-        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 15, "share_percent": 4.6, "screen_treatment": "要確認", "rank": 5 },
-        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 14, "share_percent": 4.3, "screen_treatment": "要確認", "rank": 6 }
+        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 274, "share_percent": 64.6, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
+        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 47, "share_percent": 11.1, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
+        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 15, "share_percent": 3.5, "screen_treatment": "要確認", "rank": 3 },
+        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 33, "share_percent": 7.8, "screen_treatment": "要確認", "rank": 4 },
+        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 32, "share_percent": 7.5, "screen_treatment": "要確認", "rank": 5 },
+        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 23, "share_percent": 5.4, "screen_treatment": "要確認", "rank": 6 }
       ],
       "discovery_evidence_states": [
         { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 51, "share_percent": 66.2, "screen_treatment": "照合条件または説明に使用", "rank": 1 },
@@ -210,7 +215,19 @@
         { "source_label": "第19回 タムロン鉄道風景コンテスト 公式応募要項", "route_count": 2, "deadline_evidence": "2026年9月1日23:59 日本時間", "technical_evidence": "JPEG・10MB以下・単写真", "largest_gap": "応募料", "official_url": "https://www.tamron.com/jp/special/contest/train2026/" },
         { "source_label": "仏教伝道協会 第13回 公式募集ページ", "route_count": 2, "deadline_evidence": "2026年8月31日、プリント必着・WEB時刻未確認", "technical_evidence": "2Lプリント／WEB 10MB以下", "largest_gap": "応募料・権利利用条項・WEB締切時刻", "official_url": "https://www.bdk.or.jp/photo_contest/2026_entry.html" },
         { "source_label": "環境省 日本の国立公園フォトコンテスト2026 公式特設サイト", "route_count": 1, "deadline_evidence": "2026年11月30日23:59 日本時間", "technical_evidence": "Instagram投稿またはFacebookフォーム", "largest_gap": "応募料・SNS取得失敗リスク", "official_url": "https://nationalparksjp-photocontest.com/" },
-        { "source_label": "キンカンフォトコンテスト 公式応募規約", "route_count": 1, "deadline_evidence": "2026年9月30日、時刻未確認", "technical_evidence": "WEBフォーム5MB以下またはSNS投稿", "largest_gap": "締切時刻・応募料・同時応募", "official_url": "https://www.kinkan.co.jp/cmp_photo2026/" }
+        { "source_label": "キンカンフォトコンテスト 公式応募規約", "route_count": 1, "deadline_evidence": "2026年9月30日、時刻未確認", "technical_evidence": "WEBフォーム5MB以下またはSNS投稿", "largest_gap": "締切時刻・応募料・同時応募", "official_url": "https://www.kinkan.co.jp/cmp_photo2026/" },
+        { "source_label": "歌志内市 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年9月18日、郵送は消印有効", "technical_evidence": "横位置1点・四つ切/A4またはメール", "largest_gap": "メール締切時刻", "official_url": "https://www.city.utashinai.hokkaido.jp/hotnews/detail/00004403.html" },
+        { "source_label": "岩手県 公式募集ページ・実施要領", "route_count": 1, "deadline_evidence": "2026年10月10日、時刻・郵送基準未確認", "technical_evidence": "フォーム・郵送・8MB以下メール", "largest_gap": "加工・発表歴・権利", "official_url": "https://www.pref.iwate.jp/kendozukuri/toshigesui/machizukuri/1079372/1079373.html" },
+        { "source_label": "塙町観光協会 公式募集要項", "route_count": 1, "deadline_evidence": "2026年12月15日必着、時刻未確認", "technical_evidence": "プリントまたは公式LINEの高画質JPEG", "largest_gap": "LINE提出仕様", "official_url": "https://www.kanko-hanawa.com/photo" },
+        { "source_label": "草加市 公式募集ページ・応募要領", "route_count": 1, "deadline_evidence": "2026年9月30日消印有効", "technical_evidence": "A4・四つ切・ワイド四つ切のカラー単写真", "largest_gap": "応募料", "official_url": "https://www.city.soka.saitama.jp/cont/s1410/010/040/060/PAGE000000000000082880.html" },
+        { "source_label": "新潟県 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年10月31日、時刻未確認", "technical_evidence": "Webフォーム、詳細仕様は未調査", "largest_gap": "技術・発表歴・加工・権利", "official_url": "https://www.pref.niigata.lg.jp/site/road-photo-contest/daigokainiigatamitiphotokonn.html" },
+        { "source_label": "飯島町 公式募集ページ・応募規約", "route_count": 1, "deadline_evidence": "2026年12月25日消印有効", "technical_evidence": "プリントまたはInstagram、指定5イベント", "largest_gap": "加工・権利", "official_url": "https://www.town.iijima.lg.jp/soshikiichiran/sangyoshinkoka/shokokankokakari/kanko/1685.html" },
+        { "source_label": "大野町 公式募集ページ・応募規程", "route_count": 1, "deadline_evidence": "2027年3月1日、時刻・郵送基準未確認", "technical_evidence": "JPEG/PNG・10MB以下、フォームまたはCD-R", "largest_gap": "締切時刻・受賞作品の権利範囲", "official_url": "https://www.town-ono.jp/0000002549.html" },
+        { "source_label": "しがのフォトコン!! 公式応募規約", "route_count": 1, "deadline_evidence": "2027年1月27日、時刻未確認", "technical_evidence": "コラージュ・合成・組写真・文字入れ不可", "largest_gap": "提出ファイル仕様", "official_url": "https://shigaphotocon.biwako-visitors.jp/rule" },
+        { "source_label": "宮島観光協会 公式募集ページ・応募規約", "route_count": 1, "deadline_evidence": "2026年10月15日、時刻未確認", "technical_evidence": "Instagram公開投稿・1投稿1点", "largest_gap": "画像仕様・加工条件", "official_url": "https://www.miyajima.or.jp/new/mibunrui/announcement-of-selected-entries-photocon2/?act=sp" },
+        { "source_label": "東かがわ市観光情報サイト 公式募集概要", "route_count": 1, "deadline_evidence": "2026年11月30日、時刻・郵送基準未確認", "technical_evidence": "プリントまたはInstagram", "largest_gap": "サイズ・加工・権利", "official_url": "https://higashikagawa.net/news/4255" },
+        { "source_label": "土佐市観光協会 公式募集記事", "route_count": 1, "deadline_evidence": "2026年11月30日、時刻・郵送基準未確認", "technical_evidence": "プリントまたはInstagram", "largest_gap": "応募PDFの技術・加工・権利", "official_url": "https://tosacity-kankou.com/information/photocontest2026/" },
+        { "source_label": "五島市 公式募集要領", "route_count": 1, "deadline_evidence": "2026年11月30日、時刻未確認", "technical_evidence": "JPEG/PNG・15MB以下・単写真", "largest_gap": "締切時刻", "official_url": "https://www.city.goto.nagasaki.jp/sekaiisan/li/030/092/20250609162412.html" }
       ],
       "discovery_channels": [
         { "channel": "NatGeo Your Shot", "cadence": "常設 + 月替わり", "method": "Instagram公開投稿 + ハッシュタグ", "eligibility": "投稿時点から6か月以内", "outcome": "NatGeoデジタル／SNS掲載候補", "recheck": "月替わりタグ・原画像提出" },
@@ -234,12 +251,12 @@
       "path": "quality/queries/evidence_coverage.sql",
       "query": {
         "engine": "DuckDB",
-        "description": "4つの応募ルートJSONにある41ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
+        "description": "4つの応募ルートJSONにある53ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
         "executed_at": "2026-07-23T00:00:00+09:00",
         "language": "sql",
         "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json", "data/domestic-opportunities.json"],
         "filters": ["verifiedAt = 2026-07-23", "8 evidence fields per route"],
-        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全328セル"]
+        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全424セル"]
       }
     },
     {
