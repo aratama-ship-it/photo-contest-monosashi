@@ -10,7 +10,7 @@
       {
         "id": "evidence_coverage_chart",
         "title": "公式根拠ステータスの件数",
-        "subtitle": "29応募ルート × 8条項 = 232セル（2026年7月23日時点）",
+        "subtitle": "30応募ルート × 8条項 = 240セル（2026年7月23日時点）",
         "type": "bar",
         "dataset": "evidence_states",
         "sourceId": "audit_data_sql",
@@ -96,19 +96,24 @@
       {
         "id": "executive_summary",
         "type": "markdown",
-        "body": "## Executive Summary\n\n- **応募判定は29ルート、探索先は11入口になりました。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **探索先も作品条件で照合します。** 撮影日、単写真／シリーズ、SNS公開、外部サービス登録、撮影機材、新作撮影可否から「使える見込み」「準備・確認あり」「今回の条件外」を返します。\n- **応募ルートは232セル中182セル（78.4%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 未記載・未調査・公式内不一致は○へ繰り上げません。\n- **入口を原子的に分けました。** PhotoVogue Mondayと完成プロジェクト送付、LFI一般ギャラリーとLeica限定Mastershotsを別ルートにし、条件の混在を防ぎます。"
+        "body": "## Executive Summary\n\n- **応募判定は30ルート、探索先は11入口になりました。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **国内1件と海外・国際29件を主催者所在地で切り替えます。** 応募者の居住地条件とは分離し、各カードで日本から応募できるかを別に確認します。\n- **探索先も作品条件で照合します。** 撮影日、単写真／シリーズ、SNS公開、外部サービス登録、撮影機材、新作撮影可否から「使える見込み」「準備・確認あり」「今回の条件外」を返します。\n- **応募ルートは240セル中190セル（79.2%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 未記載・未調査・公式内不一致は○へ繰り上げません。\n- **入口を原子的に分けました。** PhotoVogue Mondayと完成プロジェクト送付、LFI一般ギャラリーとLeica限定Mastershotsを別ルートにし、条件の混在を防ぎます。"
       },
       {
         "id": "coverage_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## 78.4%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の182セルに対し、公式内の不一致15セル、締切日だけを確認した9セル、未記載15セル、未調査11セルがあります。後者50セルは安全側に倒し、回答が合っていても「要確認」とします。"
+        "body": "## 79.2%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の190セルに対し、公式内の不一致15セル、締切日だけを確認した9セル、未記載15セル、未調査11セルがあります。後者50セルは安全側に倒し、回答が合っていても「要確認」とします。"
       },
       {
         "id": "worldwide_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
         "body": "## 世界対応は、世界公募と地域限定を分ける\n\n世界各国から応募できるルートは12件になりました。一方、APEC Photo Contestは日本から参加できますが、対象はAPEC 21エコノミーの市民・永住者に限定されます。主催地、応募可能地域、応募言語を分け、世界公募と日本から参加可能な地域公募を同じ意味に潰しません。"
+      },
+      {
+        "id": "market_scope_finding",
+        "type": "markdown",
+        "body": "## 国内と海外は、名称ではなく主催者所在地で分ける\n\n「国内公募」は主催者所在地が日本のルート、「海外・国際公募」はそれ以外としました。国内側には[第1回 JPSノンフィクション写真賞](https://www.jps.gr.jp/nonfiction-_submission/)を追加しています。Tokyo International Foto Awardsは名称にTokyoを含みますが、公式プライバシーポリシーの登録事務所が米国ロサンゼルスのため海外・国際側です。応募者の居住地制限や日本から参加できるかは、地域区分と混同せず各カードで別に表示します。"
       },
       {
         "id": "evidence_coverage_block",
@@ -160,7 +165,7 @@
       {
         "id": "caveats",
         "type": "markdown",
-        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。29ルートは世界中の全コンテストを網羅したものではなく、11の探索先も掲載・受賞を保証しません。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。追加確認対象: [Flickr Monthly Photo Challenge](https://www.flickr.com/groups/flickrmonthlyphotochallenge/)、[Flickr Friday](https://www.flickr.com/groups/flickrfriday/)、[LFI Gallery FAQ](https://lfi-online.de/en/gallery/faq.html)、[VIEWBUG contests](https://www.viewbug.com/photo-contests/free)。"
+        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月23日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。30ルートは世界中の全コンテストを網羅したものではなく、11の探索先も掲載・受賞を保証しません。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。追加確認対象: [Flickr Monthly Photo Challenge](https://www.flickr.com/groups/flickrmonthlyphotochallenge/)、[Flickr Friday](https://www.flickr.com/groups/flickrfriday/)、[LFI Gallery FAQ](https://lfi-online.de/en/gallery/faq.html)、[VIEWBUG contests](https://www.viewbug.com/photo-contests/free)。"
       }
     ]
   },
@@ -170,12 +175,12 @@
     "status": "ready",
     "datasets": {
       "evidence_states": [
-        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 152, "share_percent": 65.5, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
-        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 30, "share_percent": 12.9, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
-        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 15, "share_percent": 6.5, "screen_treatment": "要確認", "rank": 3 },
-        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 15, "share_percent": 6.5, "screen_treatment": "要確認", "rank": 4 },
-        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 11, "share_percent": 4.7, "screen_treatment": "要確認", "rank": 5 },
-        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 9, "share_percent": 3.9, "screen_treatment": "要確認", "rank": 6 }
+        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 159, "share_percent": 66.3, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
+        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 31, "share_percent": 12.9, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
+        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 15, "share_percent": 6.3, "screen_treatment": "要確認", "rank": 3 },
+        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 15, "share_percent": 6.3, "screen_treatment": "要確認", "rank": 4 },
+        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 11, "share_percent": 4.6, "screen_treatment": "要確認", "rank": 5 },
+        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 9, "share_percent": 3.8, "screen_treatment": "要確認", "rank": 6 }
       ],
       "discovery_evidence_states": [
         { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 51, "share_percent": 66.2, "screen_treatment": "照合条件または説明に使用", "rank": 1 },
@@ -197,7 +202,8 @@
         { "source_label": "CEWE Photo Award", "route_count": 1, "deadline_evidence": "2027年5月31日、時刻未確認", "technical_evidence": "未調査", "largest_gap": "技術・発表歴・AI・同時応募・権利", "official_url": "https://www.cewe.fr/concours-photo.html" },
         { "source_label": "HIPA Determination Without Limits", "route_count": 1, "deadline_evidence": "2026年8月20日23:59 UAE時間", "technical_evidence": "JPEGまたはRAW・5MB以上（初期提出形式は要確認）", "largest_gap": "料金・編集・発表歴・同時応募", "official_url": "https://hipa.ae/competitions/determination-without-limits-2026" },
         { "source_label": "PhotoVogue Global Open Call", "route_count": 1, "deadline_evidence": "2026年9月11日23:59 CET（公式表記）", "technical_evidence": "AI生成不可、ファイル仕様は未記載", "largest_gap": "公開歴・同時応募・権利・CET/夏時間", "official_url": "https://www.vogue.in/content/a-global-open-call-by-photovogue-invites-image-makers-with-powerful-stories" },
-        { "source_label": "APEC Photo Contest 2026", "route_count": 1, "deadline_evidence": "2026年9月6日23:59 SGT", "technical_evidence": "JPEG・1〜10MB・EXIF保持", "largest_gap": "応募料・発表歴", "official_url": "https://www.apec.org/press/apec-photo-contest/apec-photo-contest-2026" }
+        { "source_label": "APEC Photo Contest 2026", "route_count": 1, "deadline_evidence": "2026年9月6日23:59 SGT", "technical_evidence": "JPEG・1〜10MB・EXIF保持", "largest_gap": "応募料・発表歴", "official_url": "https://www.apec.org/press/apec-photo-contest/apec-photo-contest-2026" },
+        { "source_label": "日本写真家協会 公式募集ページ・応募要項", "route_count": 1, "deadline_evidence": "2026年8月17日必着・持参17:00", "technical_evidence": "六ツ切またはA4プリント15〜30枚", "largest_gap": "応募料・同時応募の扱い", "official_url": "https://www.jps.gr.jp/nonfiction-_submission/" }
       ],
       "discovery_channels": [
         { "channel": "NatGeo Your Shot", "cadence": "常設 + 月替わり", "method": "Instagram公開投稿 + ハッシュタグ", "eligibility": "投稿時点から6か月以内", "outcome": "NatGeoデジタル／SNS掲載候補", "recheck": "月替わりタグ・原画像提出" },
@@ -221,12 +227,12 @@
       "path": "quality/queries/evidence_coverage.sql",
       "query": {
         "engine": "DuckDB",
-        "description": "3つの応募ルートJSONにある29ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
+        "description": "4つの応募ルートJSONにある30ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
         "executed_at": "2026-07-23T00:00:00+09:00",
         "language": "sql",
-        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json"],
+        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json", "data/domestic-opportunities.json"],
         "filters": ["verifiedAt = 2026-07-23", "8 evidence fields per route"],
-        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全232セル"]
+        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全240セル"]
       }
     },
     {
@@ -238,7 +244,7 @@
         "description": "応募ルートを公式URL単位に集約し、締切と技術仕様の確認状態を一覧化します。",
         "executed_at": "2026-07-23T00:00:00+09:00",
         "language": "sql",
-        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json"],
+        "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json", "data/domestic-opportunities.json"],
         "filters": ["verifiedAt = 2026-07-23"]
       }
     },

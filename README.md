@@ -6,7 +6,8 @@
 
 - 写真を任意で端末内だけにプレビューし、画像形式・容量・画素数を確認
 - 未回答を推測で埋めず、作品形態、撮影年、年齢、学生区分、活動区分、権利などを照合
-- 29の応募ルートを「確認範囲で不一致なし」「要確認」「明示条件に不一致」に分けて理由を表示
+- 国内1・海外／国際29の計30応募ルートを「確認範囲で不一致なし」「要確認」「明示条件に不一致」に分けて理由を表示
+- 「すべて」「国内公募」「海外・国際公募」を結果画面で切り替え、分類設定を端末内に保存
 - 公式フォーム、プラットフォーム、メール、ハッシュタグを応募方式として区別
 - NatGeo Your Shot、PhotoVogue、Flickr、LFI Gallery、VIEWBUGなど11の常設・週次・月次のキュレーション／探索先を、締切型公募とは別枠で照合
 - 探索先ごとに、手元の写真が「使える見込み」「準備・確認あり」「今回の条件外」のどれかを判定
@@ -32,7 +33,7 @@ npm test
 
 - 画面: `app/page.tsx`
 - スタイル: `app/globals.css`
-- 公募データ: `data/opportunities.json`、`data/worldwide-opportunities.json`、`data/social-opportunities.json`
+- 公募データ: `data/opportunities.json`、`data/worldwide-opportunities.json`、`data/social-opportunities.json`、`data/domestic-opportunities.json`
 - 常設・週次・月次の探索先: `data/discovery-channels.json`
 - 受賞傾向データ: `data/trends.json`
 - 設計根拠: `DESIGN_PLAN.md`

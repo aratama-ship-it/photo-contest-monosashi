@@ -7,7 +7,8 @@ SELECT
 FROM read_json_auto([
   'data/opportunities.json',
   'data/worldwide-opportunities.json',
-  'data/social-opportunities.json'
+  'data/social-opportunities.json',
+  'data/domestic-opportunities.json'
 ])
 GROUP BY sourceUrl, sourceLabel
 ORDER BY route_count DESC, sourceLabel;

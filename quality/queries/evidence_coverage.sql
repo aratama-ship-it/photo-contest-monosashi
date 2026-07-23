@@ -3,7 +3,8 @@ WITH opportunities AS (
   FROM read_json_auto([
     'data/opportunities.json',
     'data/worldwide-opportunities.json',
-    'data/social-opportunities.json'
+    'data/social-opportunities.json',
+    'data/domestic-opportunities.json'
   ])
 ), evidence_cells AS (
   SELECT id, unnest([

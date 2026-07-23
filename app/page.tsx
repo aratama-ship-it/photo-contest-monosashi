@@ -4,6 +4,7 @@ import { ChangeEvent, DragEvent, useEffect, useMemo, useRef, useState } from "re
 import opportunityData from "@/data/opportunities.json";
 import worldwideOpportunityData from "@/data/worldwide-opportunities.json";
 import socialOpportunityData from "@/data/social-opportunities.json";
+import domesticOpportunityData from "@/data/domestic-opportunities.json";
 import discoveryChannelData from "@/data/discovery-channels.json";
 import trendData from "@/data/trends.json";
 
@@ -48,6 +49,8 @@ type Profile = {
 
 type EvidenceState = "explicit" | "conditional" | "conflict" | "date_only" | "not_stated" | "not_researched";
 type EvidenceKey = "deadline" | "entrant" | "work" | "technical" | "publication" | "simultaneous" | "editing" | "rights";
+type MarketScope = "domestic" | "international";
+type MarketFilter = "all" | MarketScope;
 
 type Opportunity = {
   id: string;
@@ -59,6 +62,7 @@ type Opportunity = {
   deadlineLabel: string;
   feeType: "free" | "paid" | "unknown";
   feeLabel: string;
+  marketScope: MarketScope;
   deadlineTimezone?: string;
   organizerRegion?: string;
   organizerCountry?: string;
@@ -68,7 +72,7 @@ type Opportunity = {
   eligibleResidenceGroups?: string[];
   entryLanguage?: string;
   opportunityKind?: "contest" | "open_call" | "challenge" | "curation";
-  submissionMethod?: "web_form" | "platform_upload" | "hashtag" | "email" | "hybrid";
+  submissionMethod?: "web_form" | "platform_upload" | "hashtag" | "email" | "hybrid" | "mail_or_in_person";
   submissionLabel?: string;
   socialExtension?: boolean;
   socialPostingRequired?: boolean;
@@ -198,11 +202,17 @@ type DiscoveryAssessment = {
   score: number;
 };
 
-const opportunities = [...opportunityData, ...worldwideOpportunityData, ...socialOpportunityData] as Opportunity[];
+const opportunities = [
+  ...opportunityData.map((item) => ({ ...item, marketScope: "international" as const })),
+  ...worldwideOpportunityData.map((item) => ({ ...item, marketScope: "international" as const })),
+  ...socialOpportunityData.map((item) => ({ ...item, marketScope: "international" as const })),
+  ...domesticOpportunityData.map((item) => ({ ...item, marketScope: "domestic" as const })),
+] as Opportunity[];
 const discoveryChannels = discoveryChannelData as DiscoveryChannel[];
 const trends = trendData as Trend[];
 const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
+const MARKET_KEY = "photo-monosashi-market-v1";
 
 const subjectLabels: Record<Subject, string> = {
   animals: "動物・ペット",
@@ -261,6 +271,11 @@ const discoveryVerdictMeta: Record<DiscoveryVerdict, { label: string; mark: stri
   ready: { label: "使える見込み", mark: "○" },
   prepare: { label: "準備・確認あり", mark: "△" },
   not_fit: { label: "今回の条件外", mark: "×" },
+};
+
+const marketLabels: Record<MarketScope, string> = {
+  domestic: "国内公募",
+  international: "海外・国際公募",
 };
 
 function normalizeProfile(value: Partial<Profile>): Profile {
@@ -562,9 +577,21 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
       add("check", "生成AI", "AI生成作品の扱いを公式要項で確認してください");
     }
   } else if (profile.editing === "generative_edit") {
-    add("check", "生成AI編集", "生成塗り足し・要素追加が操作規定に収まるか確認してください");
+    add(
+      opportunity.editPolicy === "no_composite" ? "fail" : "check",
+      "生成AI編集",
+      opportunity.editPolicy === "no_composite"
+        ? "加工・合成・画像生成AIを使用した作品は不可と明記"
+        : "生成塗り足し・要素追加が操作規定に収まるか確認してください",
+    );
   } else if (profile.editing === "composite") {
-    add(opportunity.editPolicy === "allowed_with_disclosure" ? "check" : "check", "合成・大幅編集", "部門ごとの編集規定、素材の権利、申告方法を確認");
+    add(
+      opportunity.editPolicy === "no_composite" ? "fail" : "check",
+      "合成・大幅編集",
+      opportunity.editPolicy === "no_composite"
+        ? "加工・合成した作品は不可と明記"
+        : "部門ごとの編集規定、素材の権利、申告方法を確認",
+    );
   } else {
     add(opportunity.editPolicy === "needs_check" ? "check" : "pass", "編集", opportunity.editPolicy === "needs_check" ? "基本補正の許容範囲も要項で未確認" : "基本補正として照合");
   }
@@ -803,6 +830,7 @@ export default function Home() {
   const [saved, setSaved] = useState<string[]>([]);
   const [savedOpen, setSavedOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [marketFilter, setMarketFilter] = useState<MarketFilter>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLElement>(null);
 
@@ -811,12 +839,16 @@ export default function Home() {
       try {
         const storedProfile = localStorage.getItem(PROFILE_KEY);
         const storedSaved = localStorage.getItem(SAVED_KEY);
+        const storedMarket = localStorage.getItem(MARKET_KEY);
         if (storedProfile) {
           setProfile(normalizeProfile(JSON.parse(storedProfile)));
         }
         if (storedSaved) {
           const ids = JSON.parse(storedSaved);
           if (Array.isArray(ids)) setSaved(ids.map(String));
+        }
+        if (storedMarket === "all" || storedMarket === "domestic" || storedMarket === "international") {
+          setMarketFilter(storedMarket);
         }
       } catch {
         // Storage is optional. The matcher still works without persistence.
@@ -846,6 +878,15 @@ export default function Home() {
   }, [saved, hydrated]);
 
   useEffect(() => {
+    if (!hydrated) return;
+    try {
+      localStorage.setItem(MARKET_KEY, marketFilter);
+    } catch {
+      // Ignore unavailable storage.
+    }
+  }, [marketFilter, hydrated]);
+
+  useEffect(() => {
     return () => {
       if (photo?.url) URL.revokeObjectURL(photo.url);
     };
@@ -866,12 +907,25 @@ export default function Home() {
       });
   }, [photo, profile]);
 
-  const counts = useMemo(() => {
+  const marketCounts = useMemo(() => {
     return assessments.reduce(
+      (result, item) => ({ ...result, [item.opportunity.marketScope]: result[item.opportunity.marketScope] + 1 }),
+      { domestic: 0, international: 0 } as Record<MarketScope, number>,
+    );
+  }, [assessments]);
+
+  const filteredAssessments = useMemo(() => {
+    return marketFilter === "all"
+      ? assessments
+      : assessments.filter((item) => item.opportunity.marketScope === marketFilter);
+  }, [assessments, marketFilter]);
+
+  const counts = useMemo(() => {
+    return filteredAssessments.reduce(
       (result, item) => ({ ...result, [item.verdict]: result[item.verdict] + 1 }),
       { eligible: 0, needs_check: 0, ineligible: 0 } as Record<Verdict, number>,
     );
-  }, [assessments]);
+  }, [filteredAssessments]);
 
   const discoveryAssessments = useMemo(() => {
     const verdictOrder: Record<DiscoveryVerdict, number> = { ready: 0, prepare: 1, not_fit: 2 };
@@ -1293,18 +1347,29 @@ export default function Home() {
         <section className="results-section" ref={resultsRef} id="results" aria-labelledby="results-title">
           <div className="results-head">
             <div>
-              <p className="eyebrow">MEASURED AGAINST {opportunities.length} ENTRY ROUTES</p>
+              <p className="eyebrow">MEASURED AGAINST {filteredAssessments.length} OF {opportunities.length} ENTRY ROUTES</p>
               <h2 id="results-title">この一枚の候補</h2>
             </div>
-            <div className="result-counts" aria-label="判定件数">
+            <div className="result-counts" aria-label="表示中の判定件数" aria-live="polite">
               <span className="count-eligible"><b>{counts.eligible}</b> 不一致なし</span>
               <span className="count-check"><b>{counts.needs_check}</b> 要確認</span>
               <span className="count-fail"><b>{counts.ineligible}</b> 不一致</span>
             </div>
           </div>
           <p className="results-note">
-            これは受賞可能性ではありません。世界公募は「主催地」ではなく応募可能地域で確認し、フォーム・プラットフォーム・メール・ハッシュタグという入口も分離します。未回答を推測で埋めず、応募資格・提出準備・部門候補を分けて表示します。
+            これは受賞可能性ではありません。未回答を推測で埋めず、確認できない条件は「要確認」に残します。国内は主催者所在地が日本の公募、海外・国際はそれ以外として分類し、日本から応募できるかは各カードの「応募地域」で別に確認します。
           </p>
+          <div className="market-filter" role="group" aria-label="国内・海外の表示切替">
+            <button type="button" className={marketFilter === "all" ? "is-selected" : ""} aria-pressed={marketFilter === "all"} onClick={() => setMarketFilter("all")}>
+              <small>ALL ROUTES</small><span>すべて</span><b>{opportunities.length}</b>
+            </button>
+            <button type="button" className={marketFilter === "domestic" ? "is-selected" : ""} aria-pressed={marketFilter === "domestic"} onClick={() => setMarketFilter("domestic")}>
+              <small>JAPAN</small><span>国内公募</span><b>{marketCounts.domestic}</b>
+            </button>
+            <button type="button" className={marketFilter === "international" ? "is-selected" : ""} aria-pressed={marketFilter === "international"} onClick={() => setMarketFilter("international")}>
+              <small>GLOBAL</small><span>海外・国際公募</span><b>{marketCounts.international}</b>
+            </button>
+          </div>
           <div className="precision-legend" aria-label="判定記号の説明">
             <span><b>×</b> 明示条件の不一致</span>
             <span><b>△</b> 未回答・公式未確認</span>
@@ -1313,7 +1378,7 @@ export default function Home() {
           </div>
 
           <div className="results-list">
-            {assessments.map((assessment, index) => {
+            {filteredAssessments.map((assessment, index) => {
               const meta = verdictMeta[assessment.verdict];
               const savedAlready = saved.includes(assessment.opportunity.id);
               const proximity = deadlineProximity(assessment.opportunity);
@@ -1324,7 +1389,7 @@ export default function Home() {
                   <div className="result-main">
                     <div className="result-titleline">
                       <div>
-                        <p>{assessment.opportunity.parent}{assessment.opportunity.organizerRegion ? ` · ${assessment.opportunity.organizerRegion}` : ""}</p>
+                        <p><span className={`market-stamp market-${assessment.opportunity.marketScope}`}>{marketLabels[assessment.opportunity.marketScope]}</span>{assessment.opportunity.parent}{assessment.opportunity.organizerRegion ? ` · ${assessment.opportunity.organizerRegion}` : ""}</p>
                         <h3>{assessment.opportunity.title}</h3>
                         <span className="submission-badge">
                           {assessment.opportunity.opportunityKind ? opportunityKindLabels[assessment.opportunity.opportunityKind] : "賞・コンテスト"}

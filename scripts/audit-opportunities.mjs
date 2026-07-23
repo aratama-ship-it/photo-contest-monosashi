@@ -4,12 +4,14 @@ import { readFile } from "node:fs/promises";
 const dataUrl = new URL("../data/opportunities.json", import.meta.url);
 const worldwideDataUrl = new URL("../data/worldwide-opportunities.json", import.meta.url);
 const socialDataUrl = new URL("../data/social-opportunities.json", import.meta.url);
+const domesticDataUrl = new URL("../data/domestic-opportunities.json", import.meta.url);
 const discoveryDataUrl = new URL("../data/discovery-channels.json", import.meta.url);
 const baseOpportunities = JSON.parse(await readFile(dataUrl, "utf8"));
 const worldwideOpportunities = JSON.parse(await readFile(worldwideDataUrl, "utf8"));
 const socialOpportunities = JSON.parse(await readFile(socialDataUrl, "utf8"));
+const domesticOpportunities = JSON.parse(await readFile(domesticDataUrl, "utf8"));
 const discoveryChannels = JSON.parse(await readFile(discoveryDataUrl, "utf8"));
-const opportunities = [...baseOpportunities, ...worldwideOpportunities, ...socialOpportunities];
+const opportunities = [...baseOpportunities, ...worldwideOpportunities, ...socialOpportunities, ...domesticOpportunities];
 
 const evidenceKeys = [
   "deadline",
@@ -48,6 +50,7 @@ const officialHosts = new Set([
   "hipa.ae",
   "www.vogue.in",
   "www.apec.org",
+  "www.jps.gr.jp",
 ]);
 const discoveryOfficialHosts = new Set([
   "www.nationalgeographic.com",
@@ -73,8 +76,9 @@ const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
 assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
+assert.equal(domesticOpportunities.length, 1, "expected 1 independently audited domestic entry route");
 assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
-assert.equal(opportunities.length, 29, "expected 29 independently selectable entry routes");
+assert.equal(opportunities.length, 30, "expected 30 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
 assert.equal(
@@ -128,6 +132,10 @@ assert.ok(
 assert.ok(
   worldwideOpportunities.every((item) => item.entryLanguage && item.organizerRegion),
   "worldwide routes must expose entry language and organizer region",
+);
+assert.ok(
+  domesticOpportunities.every((item) => item.organizerCountry === "日本" && item.organizerRegion === "日本"),
+  "domestic routes must have a verified Japan organizer classification",
 );
 
 const sonySingle = opportunities.filter((item) => item.id.startsWith("sony-single-"));
@@ -187,6 +195,16 @@ assert.equal(apec?.feeType, "unknown", "APEC fee must not be guessed");
 assert.equal(apec?.priorAwardPolicy, "not_allowed", "APEC excludes previously submitted contest photos");
 assert.equal(apec?.simultaneousPolicy, "not_allowed", "APEC excludes photos submitted to other contests");
 
+const jpsNonfiction = opportunities.find((item) => item.id === "jps-nonfiction-photo-award-2026");
+assert.equal(jpsNonfiction?.submissionMethod, "mail_or_in_person", "JPS Nonfiction must preserve its physical submission route");
+assert.equal(jpsNonfiction?.maxAge, 30, "JPS Nonfiction is limited to entrants aged 30 or younger");
+assert.equal(jpsNonfiction?.workType, "series", "JPS Nonfiction requires a coherent print series");
+assert.equal(jpsNonfiction?.seriesMin, 15, "JPS Nonfiction requires at least 15 prints");
+assert.equal(jpsNonfiction?.seriesMax, 30, "JPS Nonfiction allows at most 30 prints");
+assert.equal(jpsNonfiction?.priorAwardPolicy, "not_allowed", "JPS Nonfiction excludes works with another decided award");
+assert.equal(jpsNonfiction?.editPolicy, "no_composite", "JPS Nonfiction excludes processing, compositing and generative AI");
+assert.equal(jpsNonfiction?.rightsPolicy, "explicit", "JPS Nonfiction explicitly retains copyright with the photographer");
+
 const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
 assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
 assert.equal(natGeo?.publicAccount, "required", "NatGeo Your Shot requires a public account");
@@ -235,6 +253,8 @@ const submissionMethods = socialOpportunities.reduce((counts, item) => {
 
 console.log(JSON.stringify({
   routes: opportunities.length,
+  domesticRoutes: domesticOpportunities.length,
+  internationalRoutes: opportunities.length - domesticOpportunities.length,
   worldwideAdded: worldwideOpportunities.length,
   socialDeadlineRoutes: socialOpportunities.length,
   discoveryChannels: discoveryChannels.length,

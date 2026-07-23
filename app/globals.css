@@ -660,8 +660,18 @@ summary:focus-visible {
 .count-eligible b { color: var(--green); }
 .count-check b { color: var(--yellow); }
 .count-fail b { color: var(--red); }
-.results-note { max-width: 700px; margin: 18px 0 32px; color: var(--ink-soft); font-size: 12px; line-height: 1.8; }
-.precision-legend { display: flex; flex-wrap: wrap; gap: 7px 18px; margin: -18px 0 30px; color: var(--ink-soft); font-size: 9px; }
+.results-note { max-width: 760px; margin: 18px 0 24px; color: var(--ink-soft); font-size: 12px; line-height: 1.8; }
+.market-filter { display: grid; margin-bottom: 24px; border-top: 1px solid var(--line-dark); border-left: 1px solid var(--line-dark); grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.market-filter button { display: grid; min-height: 72px; grid-template-columns: 1fr auto; align-content: center; gap: 3px 12px; padding: 11px 15px; border: 0; border-right: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); background: rgba(255, 253, 246, 0.45); color: var(--ink); cursor: pointer; text-align: left; }
+.market-filter button:hover { background: rgba(255, 255, 255, 0.7); }
+.market-filter button:focus-visible { position: relative; z-index: 1; outline: 3px solid var(--focus); outline-offset: -3px; }
+.market-filter small { grid-column: 1 / -1; color: var(--ink-soft); font-family: ui-monospace, monospace; font-size: 8px; letter-spacing: 0.09em; }
+.market-filter span { font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 14px; font-weight: 650; }
+.market-filter b { align-self: center; color: var(--safe-dark); font-family: ui-monospace, monospace; font-size: 18px; }
+.market-filter button.is-selected { background: var(--ink); color: var(--paper-light); }
+.market-filter button.is-selected small,
+.market-filter button.is-selected b { color: var(--amber); }
+.precision-legend { display: flex; flex-wrap: wrap; gap: 7px 18px; margin: 0 0 30px; color: var(--ink-soft); font-size: 9px; }
 .precision-legend span { display: inline-flex; align-items: center; gap: 6px; }
 .precision-legend b { display: inline-grid; width: 18px; height: 18px; place-items: center; border: 1px solid currentColor; color: var(--ink); font-size: 9px; }
 
@@ -672,6 +682,9 @@ summary:focus-visible {
 .result-main { padding: 24px clamp(18px, 3vw, 38px) 26px; }
 .result-titleline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .result-titleline p { margin: 0 0 3px; color: var(--ink-soft); font-size: 10px; font-weight: 650; letter-spacing: 0.04em; }
+.market-stamp { display: inline-block; margin-right: 7px; padding: 2px 5px; border: 1px solid currentColor; font-family: ui-monospace, monospace; font-size: 7px; letter-spacing: 0.05em; vertical-align: 1px; }
+.market-domestic { color: var(--safe-dark); }
+.market-international { color: var(--blue); }
 .result-titleline h3 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: clamp(19px, 2vw, 25px); font-weight: 600; }
 .submission-badge { display: inline-flex; max-width: 100%; margin-top: 10px; border: 1px solid var(--line-dark); color: var(--ink-soft); font-size: 9px; line-height: 1.45; }
 .submission-badge > b { padding: 5px 7px; border-left: 1px solid var(--line-dark); color: var(--ink); font-weight: 650; }
@@ -895,6 +908,9 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .results-head { display: block; }
   .result-counts { margin-top: 19px; justify-content: space-between; gap: 8px; }
   .result-counts b { font-size: 20px; }
+  .market-filter button { min-height: 68px; padding: 9px 10px; }
+  .market-filter span { font-size: 11px; }
+  .market-filter b { font-size: 15px; }
   .result-row { grid-template-columns: 36px minmax(0, 1fr); }
   .result-index { padding: 20px 5px; font-size: 9px; }
   .result-main { padding: 20px 13px 22px; }

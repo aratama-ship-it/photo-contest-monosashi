@@ -34,7 +34,7 @@ test("server-renders the photo contest matching experience", async () => {
   assert.match(html, /この一枚を、[\s\S]*どこへ出せるか/);
   assert.match(html, /写真は任意です/);
   assert.match(html, /世界から応募できる賞・オープンコール/);
-  assert.match(html, /29[\s\S]{0,20}の応募ルート/);
+  assert.match(html, /30[\s\S]{0,20}の応募ルート/);
   assert.match(html, /応募候補/);
   assert.match(html, /フォーム以外の入口/);
   assert.match(html, /11[\s\S]{0,80}週次・月次・常設入口/);
@@ -50,11 +50,12 @@ test("server-renders the photo contest matching experience", async () => {
 });
 
 test("seed data keeps application routes and evidence auditable", async () => {
-  const [opportunitiesText, worldwideText, socialText, discoveryText, trendsText, page, layout, packageJson] =
+  const [opportunitiesText, worldwideText, socialText, domesticText, discoveryText, trendsText, page, layout, packageJson] =
     await Promise.all([
       readFile(new URL("../data/opportunities.json", import.meta.url), "utf8"),
       readFile(new URL("../data/worldwide-opportunities.json", import.meta.url), "utf8"),
       readFile(new URL("../data/social-opportunities.json", import.meta.url), "utf8"),
+      readFile(new URL("../data/domestic-opportunities.json", import.meta.url), "utf8"),
       readFile(new URL("../data/discovery-channels.json", import.meta.url), "utf8"),
       readFile(new URL("../data/trends.json", import.meta.url), "utf8"),
       readFile(new URL("../app/page.tsx", import.meta.url), "utf8"),
@@ -64,15 +65,17 @@ test("seed data keeps application routes and evidence auditable", async () => {
   const opportunities = JSON.parse(opportunitiesText);
   const worldwide = JSON.parse(worldwideText);
   const social = JSON.parse(socialText);
+  const domestic = JSON.parse(domesticText);
   const discovery = JSON.parse(discoveryText);
   const trends = JSON.parse(trendsText);
 
   assert.equal(opportunities.length, 16);
   assert.equal(worldwide.length, 11);
   assert.equal(social.length, 2);
+  assert.equal(domestic.length, 1);
   assert.equal(discovery.length, 11);
-  const allOpportunities = [...opportunities, ...worldwide, ...social];
-  assert.equal(new Set(allOpportunities.map((item) => item.id)).size, 29);
+  const allOpportunities = [...opportunities, ...worldwide, ...social, ...domestic];
+  assert.equal(new Set(allOpportunities.map((item) => item.id)).size, 30);
   assert.ok(allOpportunities.every((item) => item.verifiedAt === "2026-07-23"));
   assert.ok(allOpportunities.every((item) => item.sourceUrl.startsWith("https://")));
   assert.ok(allOpportunities.every((item) => !Number.isNaN(Date.parse(item.deadline))));
@@ -86,6 +89,10 @@ test("seed data keeps application routes and evidence auditable", async () => {
   assert.equal(social.find((item) => item.id === "photovogue-global-open-call-2026")?.submissionMethod, "platform_upload");
   assert.equal(social.find((item) => item.id === "apec-main-influencer-2026")?.submissionMethod, "hybrid");
   assert.equal(social.find((item) => item.id === "apec-main-influencer-2026")?.eligibleFromJapan, true);
+  assert.equal(domestic[0]?.organizerCountry, "日本");
+  assert.equal(domestic[0]?.submissionMethod, "mail_or_in_person");
+  assert.equal(domestic[0]?.seriesMin, 15);
+  assert.equal(domestic[0]?.seriesMax, 30);
   assert.ok(discovery.every((item) => item.verifiedAt === "2026-07-23"));
   assert.ok(discovery.every((item) => Object.keys(item.evidence).length === 7));
   assert.ok(discovery.find((item) => item.id === "natgeo-your-shot")?.requiredTags.includes("#NatGeoYourShot"));
@@ -103,11 +110,15 @@ test("seed data keeps application routes and evidence auditable", async () => {
   assert.match(page, /提出準備/);
   assert.match(page, /worldwideOpportunityData/);
   assert.match(page, /socialOpportunityData/);
+  assert.match(page, /domesticOpportunityData/);
   assert.match(page, /discoveryChannelData/);
   assert.match(page, /assessDiscovery/);
   assert.match(page, /使える見込み/);
   assert.match(page, /captureDevice/);
   assert.match(page, /platformEntry/);
+  assert.match(page, /国内・海外の表示切替/);
+  assert.match(page, /marketFilter/);
+  assert.match(page, /海外・国際公募/);
   assert.match(page, /世界各国から応募可/);
   assert.match(page, /フォーム以外の入口/);
   assert.match(page, /\/quality-report\.html/);
