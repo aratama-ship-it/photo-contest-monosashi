@@ -539,10 +539,11 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
       add("check", "発表歴", "商用利用済み作品の扱いを最新要項で確認");
     }
   } else if (profile.publication === "social") {
+    const socialAllowed = opportunity.publicationPolicy === "allowed" || opportunity.publicationPolicy === "social_allowed";
     add(
-      opportunity.publicationPolicy === "allowed" ? "pass" : "check",
+      socialAllowed ? "pass" : "check",
       "発表歴",
-      opportunity.publicationPolicy === "allowed" ? "公開済み作品も応募可と明記" : "SNS公開済み作品の扱いを確認",
+      socialAllowed ? "個人の非営利SNS掲載作品は応募可と明記" : "SNS公開済み作品の扱いを確認",
     );
   } else {
     add("pass", "発表歴", "未発表として照合");

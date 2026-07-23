@@ -51,6 +51,12 @@ const officialHosts = new Set([
   "www.vogue.in",
   "www.apec.org",
   "www.jps.gr.jp",
+  "personal.canon.jp",
+  "www.fujifilm.com",
+  "www.tamron.com",
+  "www.bdk.or.jp",
+  "nationalparksjp-photocontest.com",
+  "www.kinkan.co.jp",
 ]);
 const discoveryOfficialHosts = new Set([
   "www.nationalgeographic.com",
@@ -76,9 +82,9 @@ const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
 assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
-assert.equal(domesticOpportunities.length, 1, "expected 1 independently audited domestic entry route");
+assert.equal(domesticOpportunities.length, 12, "expected 12 independently audited domestic entry routes");
 assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
-assert.equal(opportunities.length, 30, "expected 30 independently selectable entry routes");
+assert.equal(opportunities.length, 41, "expected 41 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
 assert.equal(
@@ -136,6 +142,16 @@ assert.ok(
 assert.ok(
   domesticOpportunities.every((item) => item.organizerCountry === "日本" && item.organizerRegion === "日本"),
   "domestic routes must have a verified Japan organizer classification",
+);
+assert.ok(
+  domesticOpportunities.every((item) => item.status === "open" || item.status === "expected"),
+  "domestic routes must be open or have an officially announced upcoming window",
+);
+assert.ok(
+  domesticOpportunities
+    .filter((item) => item.applicantScope === "limited")
+    .every((item) => item.eligibleFromJapan && item.eligibleResidenceGroups?.includes("japan")),
+  "residence-limited domestic routes must explicitly retain Japan eligibility",
 );
 
 const sonySingle = opportunities.filter((item) => item.id.startsWith("sony-single-"));
@@ -204,6 +220,43 @@ assert.equal(jpsNonfiction?.seriesMax, 30, "JPS Nonfiction allows at most 30 pri
 assert.equal(jpsNonfiction?.priorAwardPolicy, "not_allowed", "JPS Nonfiction excludes works with another decided award");
 assert.equal(jpsNonfiction?.editPolicy, "no_composite", "JPS Nonfiction excludes processing, compositing and generative AI");
 assert.equal(jpsNonfiction?.rightsPolicy, "explicit", "JPS Nonfiction explicitly retains copyright with the photographer");
+
+const canonRoutes = domesticOpportunities.filter((item) => item.id.startsWith("canon-photo-contest-60-"));
+assert.equal(canonRoutes.length, 2, "Canon print and WEB submission routes must remain separate");
+assert.ok(canonRoutes.every((item) => item.entrantRole === "nonprofessional"), "Canon requires amateur entrants");
+assert.equal(canonRoutes.find((item) => item.id.endsWith("-web"))?.formats.join(","), "image/jpeg", "Canon WEB is JPEG-only");
+assert.equal(canonRoutes.find((item) => item.id.endsWith("-print"))?.workType, "both", "Canon print accepts single and grouped works");
+
+const fujifilm = domesticOpportunities.find((item) => item.id === "fujifilm-photo-contest-65");
+assert.equal(fujifilm?.status, "expected", "Fujifilm's September opening must remain marked as upcoming");
+assert.equal(fujifilm?.shotYearFrom, 2023, "Fujifilm accepts works shot from 2023 onward");
+assert.equal(fujifilm?.evidence.deadline, "date_only", "Fujifilm deadline time and mail basis remain confirmation-required");
+
+const tamronGeneralRoutes = domesticOpportunities.filter((item) => item.id.startsWith("tamron-photo-contest-2026-"));
+assert.equal(tamronGeneralRoutes.length, 2, "TAMRON general and macro categories must remain separate");
+assert.ok(tamronGeneralRoutes.every((item) => item.formats.join(",") === "image/jpeg" && item.maxFileMB === 10), "TAMRON online routes are JPEG at 10MB or less");
+assert.equal(tamronGeneralRoutes.find((item) => item.id.endsWith("-macro"))?.themeRequired, "マクロレンズで撮影した写真", "TAMRON macro must preserve its lens requirement");
+
+const tamronTrainRoutes = domesticOpportunities.filter((item) => item.id.startsWith("tamron-train-2026-"));
+assert.equal(tamronTrainRoutes.length, 2, "TAMRON train general and U-18 routes must remain separate");
+assert.equal(tamronTrainRoutes.find((item) => item.id.endsWith("-general"))?.minAge, 18, "TAMRON train general starts at age 18");
+assert.equal(tamronTrainRoutes.find((item) => item.id.endsWith("-u18"))?.maxAge, 17, "TAMRON train U-18 ends at age 17");
+assert.ok(tamronTrainRoutes.every((item) => item.deadline === "2026-09-01T14:59:00Z"), "TAMRON train deadline must preserve Japan-time conversion");
+
+const bdkRoutes = domesticOpportunities.filter((item) => item.id.startsWith("bdk-hotoke-heart-2026-"));
+assert.equal(bdkRoutes.length, 2, "BDK print and WEB submission routes must remain separate");
+assert.equal(bdkRoutes.find((item) => item.id.endsWith("-print"))?.tones.join(","), "color", "BDK print requires color");
+assert.equal(bdkRoutes.find((item) => item.id.endsWith("-web"))?.maxFileMB, 10, "BDK WEB has a 10MB limit");
+
+const nationalParks = domesticOpportunities.find((item) => item.id === "national-parks-japan-photo-contest-2026");
+assert.equal(nationalParks?.submissionMethod, "hashtag", "National Parks requires a social-platform route");
+assert.equal(nationalParks?.requiresPublicSocial, true, "National Parks Instagram entry requires public visibility");
+assert.equal(nationalParks?.deadline, "2026-11-30T14:59:00Z", "National Parks deadline must preserve Japan-time conversion");
+
+const kinkan = domesticOpportunities.find((item) => item.id === "kinkan-photo-contest-2026");
+assert.equal(kinkan?.submissionMethod, "hybrid", "Kinkan must retain form and social alternatives");
+assert.equal(kinkan?.maxFileMB, 5, "Kinkan form submissions have a 5MB limit");
+assert.equal(kinkan?.evidence.deadline, "date_only", "Kinkan deadline time remains confirmation-required");
 
 const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
 assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
