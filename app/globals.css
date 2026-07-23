@@ -723,23 +723,41 @@ summary:focus-visible {
 .channel-key { display: grid; margin: -16px 0 32px; border-top: 1px solid var(--line-dark); border-left: 1px solid var(--line-dark); grid-template-columns: repeat(3, 1fr); }
 .channel-key span { min-height: 58px; padding: 11px 14px; border-right: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); color: var(--ink-soft); font-size: 9px; line-height: 1.65; }
 .channel-key b { display: block; margin-bottom: 2px; color: var(--ink); font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: 12px; }
+.channel-key b i { margin-right: 5px; color: var(--safe-dark); font-family: ui-monospace, monospace; font-size: 11px; font-style: normal; }
 .channel-grid { display: grid; border-top: 1px solid var(--line-dark); border-left: 1px solid var(--line-dark); grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .channel-card { position: relative; min-width: 0; padding: 27px clamp(20px, 3vw, 36px) 25px; border-right: 1px solid var(--line-dark); border-bottom: 1px solid var(--line-dark); background: rgba(255, 253, 246, 0.36); }
+.channel-ready { box-shadow: inset 4px 0 0 var(--green); }
+.channel-prepare { box-shadow: inset 4px 0 0 var(--yellow); }
+.channel-not_fit { box-shadow: inset 4px 0 0 var(--red); }
 .channel-card::after { position: absolute; top: 0; right: 0; width: 40px; height: 8px; background: repeating-linear-gradient(90deg, var(--line-dark) 0 1px, transparent 1px 8px); content: ""; opacity: 0.55; }
 .channel-number { margin-bottom: 17px; color: var(--safe-dark); font-family: ui-monospace, monospace; font-size: 9px; letter-spacing: 0.12em; }
 .channel-titleline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .channel-titleline p { margin: 0 0 4px; color: var(--ink-soft); font-size: 9px; font-weight: 700; letter-spacing: 0.05em; }
 .channel-titleline h3 { margin: 0; font-family: "Hiragino Mincho ProN", "Yu Mincho", serif; font-size: clamp(20px, 2.1vw, 27px); font-weight: 550; line-height: 1.35; }
-.channel-titleline > span { flex: 0 0 auto; padding: 5px 7px; border: 1px solid var(--safe-dark); color: var(--safe-dark); font-size: 8px; font-weight: 750; }
+.channel-labels { display: grid; flex: 0 0 auto; justify-items: end; gap: 5px; }
+.channel-labels > span { padding: 5px 7px; border: 1px solid var(--safe-dark); color: var(--safe-dark); font-size: 8px; font-weight: 750; }
+.channel-labels > b { display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px; border: 1px solid currentColor; font-size: 8px; font-weight: 800; }
+.channel-labels > b i { font-family: ui-monospace, monospace; font-size: 9px; font-style: normal; }
+.channel-ready .channel-labels > b { color: var(--green); }
+.channel-prepare .channel-labels > b { color: #7b571d; }
+.channel-not_fit .channel-labels > b { color: var(--red); }
 .channel-card dl { display: grid; margin: 23px 0 15px; border-top: 1px solid var(--line); }
 .channel-card dl > div { display: grid; min-height: 42px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); grid-template-columns: 66px 1fr; gap: 10px; }
 .channel-card dt { color: var(--ink-soft); font-size: 8px; font-weight: 800; letter-spacing: 0.06em; }
 .channel-card dd { margin: 0; font-size: 10px; line-height: 1.65; }
 .channel-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 15px 0; }
 .channel-tags code { padding: 4px 6px; border-left: 2px solid var(--blue); background: rgba(65, 97, 114, 0.08); color: var(--blue); font-family: ui-monospace, monospace; font-size: 9px; overflow-wrap: anywhere; }
-.channel-card > ul { display: grid; gap: 6px; margin: 16px 0; padding: 0; list-style: none; }
-.channel-card > ul li { position: relative; padding-left: 15px; color: var(--ink-soft); font-size: 10px; line-height: 1.65; }
-.channel-card > ul li::before { position: absolute; top: 0; left: 0; color: var(--safe-dark); content: "□"; }
+.channel-match-list { display: grid; gap: 7px; margin: 16px 0; padding: 0; list-style: none; }
+.channel-match-list li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; color: var(--ink-soft); font-size: 10px; line-height: 1.65; }
+.channel-match-list li > span { display: grid; width: 18px; height: 18px; place-items: center; border: 1px solid currentColor; font-size: 9px; }
+.channel-match-list p { margin: 0; }
+.channel-match-list b { display: block; margin-bottom: 1px; color: var(--ink); font-size: 10px; }
+.channel-checklist { margin: 16px 0 0; border-top: 1px dashed var(--line); border-bottom: 1px dashed var(--line); }
+.channel-checklist summary { min-height: 40px; align-content: center; color: var(--ink-soft); cursor: pointer; font-size: 9px; font-weight: 750; }
+.channel-checklist ul { display: grid; gap: 6px; margin: 0; padding: 0 0 12px; list-style: none; }
+.channel-checklist li { position: relative; padding-left: 15px; color: var(--ink-soft); font-size: 9px; line-height: 1.65; }
+.channel-checklist li::before { position: absolute; top: 0; left: 0; color: var(--safe-dark); content: "□"; }
+.channel-ready-line { margin: 15px 0 0; padding: 10px 12px; border-left: 3px solid var(--green); background: rgba(66, 105, 79, 0.08); color: var(--green); font-size: 9px; line-height: 1.7; }
 .channel-warning { margin: 16px 0 0; padding: 11px 12px; border-left: 3px solid var(--yellow); background: rgba(169, 109, 25, 0.07); color: #6e5022; font-size: 9px; line-height: 1.7; }
 .channel-foot { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-top: 20px; padding-top: 13px; border-top: 1px dashed var(--line); }
 .channel-foot span { color: var(--ink-soft); font-family: ui-monospace, monospace; font-size: 8px; line-height: 1.5; }
@@ -895,7 +913,7 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .channel-key,
   .channel-grid { grid-template-columns: 1fr; }
   .channel-titleline { display: block; }
-  .channel-titleline > span { display: inline-block; margin-top: 11px; }
+  .channel-labels { justify-items: start; margin-top: 11px; }
   .channel-foot { align-items: flex-start; flex-direction: column; gap: 10px; }
   .trend-section { padding: 72px 14px 82px; }
   .trend-grid { grid-template-columns: 1fr; }

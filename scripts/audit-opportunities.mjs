@@ -29,7 +29,7 @@ const evidenceStates = new Set([
   "not_stated",
   "not_researched",
 ]);
-const discoveryEvidenceKeys = ["cadence", "method", "rights", "selection", "visibility"];
+const discoveryEvidenceKeys = ["cadence", "eligibility", "freshness", "method", "rights", "selection", "visibility"];
 const discoveryEvidenceStates = new Set([
   "explicit",
   "conditional",
@@ -55,12 +55,25 @@ const discoveryOfficialHosts = new Set([
   "www.worldphotographyweek.com",
   "www.oppo.com",
   "www.photocrowd.com",
+  "www.flickr.com",
+  "lfi-online.de",
+  "www.viewbug.com",
 ]);
+const discoveryPathTypes = new Set(["hashtag", "platform", "email", "hybrid"]);
+const discoveryCapturePolicies = new Set([
+  "within_6_months",
+  "new_after_announcement",
+  "existing_explicit",
+  "not_stated",
+  "listing_specific",
+]);
+const discoveryWorkTypes = new Set(["single", "series"]);
+const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
 assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
-assert.equal(discoveryChannels.length, 5, "expected 5 rolling discovery channels");
+assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
 assert.equal(opportunities.length, 29, "expected 29 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
@@ -87,6 +100,25 @@ for (const item of discoveryChannels) {
   assert.ok(Object.values(item.evidence).every((state) => discoveryEvidenceStates.has(state)), `${item.id}: unsupported discovery evidence state`);
   assert.ok(Array.isArray(item.platforms) && item.platforms.length > 0, `${item.id}: discovery platform must be explicit`);
   assert.ok(Array.isArray(item.checklist) && item.checklist.length > 0, `${item.id}: discovery checklist must not be empty`);
+  assert.ok(discoveryPathTypes.has(item.pathType), `${item.id}: unsupported discovery path type`);
+  assert.ok(
+    Array.isArray(item.acceptedWorkTypes)
+      && item.acceptedWorkTypes.length > 0
+      && item.acceptedWorkTypes.every((type) => discoveryWorkTypes.has(type)),
+    `${item.id}: accepted work types must be explicit`,
+  );
+  assert.ok(discoveryCapturePolicies.has(item.capturePolicy), `${item.id}: unsupported capture policy`);
+  assert.equal(typeof item.requiresSocial, "boolean", `${item.id}: social-entry requirement must be explicit`);
+  assert.equal(typeof item.requiresPublicAccount, "boolean", `${item.id}: public-account requirement must be explicit`);
+  assert.equal(typeof item.requiresPlatformAccount, "boolean", `${item.id}: platform-account requirement must be explicit`);
+  assert.equal(typeof item.themeVariable, "boolean", `${item.id}: theme variability must be explicit`);
+  assert.ok(item.eligibilityLabel, `${item.id}: eligibility summary must not be empty`);
+  assert.ok(!item.activeFrom || /^\d{4}-\d{2}-\d{2}$/.test(item.activeFrom), `${item.id}: activeFrom must be ISO date`);
+  assert.ok(!item.activeUntil || /^\d{4}-\d{2}-\d{2}$/.test(item.activeUntil), `${item.id}: activeUntil must be ISO date`);
+  assert.ok(
+    !item.eligibleDeviceGroups || item.eligibleDeviceGroups.every((group) => discoveryDeviceGroups.has(group)),
+    `${item.id}: unsupported device group`,
+  );
 }
 
 assert.ok(
@@ -158,15 +190,44 @@ assert.equal(apec?.simultaneousPolicy, "not_allowed", "APEC excludes photos subm
 const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
 assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
 assert.equal(natGeo?.publicAccount, "required", "NatGeo Your Shot requires a public account");
-const photoVogueMonday = discoveryChannels.find((item) => item.id === "photovogue-monday-projects");
+assert.equal(natGeo?.capturePolicy, "within_6_months", "NatGeo Your Shot requires a six-month photo freshness check");
+assert.equal(natGeo?.requiresPublicAccount, true, "NatGeo Your Shot must enforce public visibility");
+const photoVogueMonday = discoveryChannels.find((item) => item.id === "photovogue-monday");
 assert.ok(photoVogueMonday?.requiredTags.includes("#PhotoVogueMonday"), "PhotoVogue Monday must preserve the official hashtag");
+assert.equal(photoVogueMonday?.acceptedWorkTypes.includes("single"), true, "PhotoVogue Monday must remain a social-image route");
+const photoVogueProjects = discoveryChannels.find((item) => item.id === "photovogue-full-projects");
+assert.equal(photoVogueProjects?.pathType, "email", "PhotoVogue Full Projects must remain separate from Monday social entry");
+assert.deepEqual(photoVogueProjects?.acceptedWorkTypes, ["series"], "PhotoVogue Full Projects requires a finished series");
 const photocrowd = discoveryChannels.find((item) => item.id === "photocrowd-open-contests");
 assert.match(photocrowd?.warning ?? "", /固定公募ではなく探索先/, "Photocrowd must remain a rolling discovery channel");
+const flickrMonthly = discoveryChannels.find((item) => item.id === "flickr-monthly-photo-challenge");
+assert.equal(flickrMonthly?.requiresPlatformAccount, true, "Flickr Monthly requires a Flickr account");
+assert.ok(flickrMonthly?.requiredTags.includes("#FlickrPhotoChallenge"), "Flickr Monthly must preserve its official challenge tag");
+const flickrFriday = discoveryChannels.find((item) => item.id === "flickr-friday");
+assert.equal(flickrFriday?.capturePolicy, "new_after_announcement", "Flickr Friday must require a newly shot image");
+assert.ok(flickrFriday?.requiredTags.includes("flickrfriday"), "Flickr Friday must preserve its official tag");
+const lfiGallery = discoveryChannels.find((item) => item.id === "lfi-gallery-selection");
+assert.equal(lfiGallery?.capturePolicy, "existing_explicit", "LFI Gallery can select an older upload");
+assert.deepEqual(lfiGallery?.formats, ["image/jpeg"], "LFI Gallery is JPEG-only");
+assert.equal(lfiGallery?.maxFileMB, 15, "LFI Gallery has a 15MB upload limit");
+assert.equal(lfiGallery?.eligibleDeviceGroups, undefined, "LFI general gallery accepts any camera brand");
+const lfiMastershots = discoveryChannels.find((item) => item.id === "lfi-leica-mastershots");
+assert.deepEqual(lfiMastershots?.eligibleDeviceGroups, ["leica"], "LFI Mastershots requires a Leica body");
+assert.deepEqual(lfiMastershots?.formats, ["image/jpeg"], "LFI Mastershots is JPEG-only");
+assert.equal(lfiMastershots?.maxFileMB, 15, "LFI Mastershots has a 15MB upload limit");
+const viewbug = discoveryChannels.find((item) => item.id === "viewbug-open-contests");
+assert.equal(viewbug?.capturePolicy, "listing_specific", "VIEWBUG rules must remain contest-specific");
+assert.equal(viewbug?.evidence.rights, "explicit", "VIEWBUG platform-rights evidence must be retained");
+assert.ok(new URL(viewbug?.termsUrl).host === "terms.viewbug.com", "VIEWBUG terms must use its official terms host");
 
 const evidence = opportunities.flatMap((item) => Object.values(item.evidence));
 const coverage = evidence.filter((state) => state === "explicit" || state === "conditional").length;
 const deadlineWarnings = opportunities.filter((item) => ["conflict", "date_only"].includes(item.evidence.deadline)).length;
 const unknownCells = evidence.filter((state) => state === "not_stated" || state === "not_researched").length;
+const discoveryEvidence = discoveryChannels.flatMap((item) => Object.values(item.evidence));
+const discoveryCoverage = discoveryEvidence.filter(
+  (state) => state === "explicit" || state === "conditional" || state === "not_applicable",
+).length;
 const submissionMethods = socialOpportunities.reduce((counts, item) => {
   counts[item.submissionMethod] = (counts[item.submissionMethod] ?? 0) + 1;
   return counts;
@@ -184,6 +245,12 @@ console.log(JSON.stringify({
   submissionMethods,
   evidenceCoverage: `${coverage}/${evidence.length}`,
   evidenceCoveragePercent: Number((coverage / evidence.length * 100).toFixed(1)),
+  discoveryEvidenceCoverage: `${discoveryCoverage}/${discoveryEvidence.length}`,
+  discoveryEvidenceCoveragePercent: Number((discoveryCoverage / discoveryEvidence.length * 100).toFixed(1)),
+  discoveryPathTypes: discoveryChannels.reduce((counts, item) => {
+    counts[item.pathType] = (counts[item.pathType] ?? 0) + 1;
+    return counts;
+  }, {}),
   deadlineWarnings,
   unknownCells,
 }, null, 2));

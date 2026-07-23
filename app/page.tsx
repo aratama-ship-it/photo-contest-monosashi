@@ -23,6 +23,7 @@ type Subject =
 
 type Profile = {
   shotYear: number | null;
+  shotDate: string;
   workType: "unknown" | "single" | "series";
   seriesCount: number | null;
   tone: "unknown" | "color" | "monochrome";
@@ -40,6 +41,9 @@ type Profile = {
   residence: "unknown" | "japan" | "other_apec" | "other";
   socialEntry: "unknown" | "yes" | "no";
   publicSocialAccount: "unknown" | "yes" | "no";
+  platformEntry: "unknown" | "yes" | "no";
+  canShootNew: "unknown" | "yes" | "no";
+  captureDevice: "unknown" | "oppo_family" | "leica" | "other";
 };
 
 type EvidenceState = "explicit" | "conditional" | "conflict" | "date_only" | "not_stated" | "not_researched";
@@ -130,14 +134,27 @@ type DiscoveryChannel = {
   organizer: string;
   kind: string;
   cadence: string;
+  pathType: "hashtag" | "platform" | "email" | "hybrid";
   submissionLabel: string;
   platforms: string[];
+  requiresSocial: boolean;
+  requiresPublicAccount: boolean;
+  requiresPlatformAccount: boolean;
+  acceptedWorkTypes: Array<"single" | "series">;
+  capturePolicy: "within_6_months" | "new_after_announcement" | "existing_explicit" | "not_stated" | "listing_specific";
+  themeVariable: boolean;
+  activeFrom?: string;
+  activeUntil?: string;
+  eligibleDeviceGroups?: Array<"oppo_family" | "leica">;
   requiredTags: string[];
   requiredAccountTag?: string;
   publicAccount: "required" | "required_for_hashtag" | "required_for_gallery_visibility" | "not_stated" | "not_applicable";
   feeLabel: string;
   outcome: string;
   subjects: string[];
+  eligibilityLabel: string;
+  formats?: string[];
+  maxFileMB?: number;
   checklist: string[];
   evidence: Record<string, string>;
   sourceUrl: string;
@@ -172,6 +189,15 @@ type Assessment = {
   preferenceMiss: boolean;
 };
 
+type DiscoveryCheck = { kind: "pass" | "check" | "fail" | "prepare" | "fit"; label: string; detail: string };
+type DiscoveryVerdict = "ready" | "prepare" | "not_fit";
+type DiscoveryAssessment = {
+  channel: DiscoveryChannel;
+  verdict: DiscoveryVerdict;
+  checks: DiscoveryCheck[];
+  score: number;
+};
+
 const opportunities = [...opportunityData, ...worldwideOpportunityData, ...socialOpportunityData] as Opportunity[];
 const discoveryChannels = discoveryChannelData as DiscoveryChannel[];
 const trends = trendData as Trend[];
@@ -195,6 +221,7 @@ const subjectLabels: Record<Subject, string> = {
 
 const defaultProfile: Profile = {
   shotYear: null,
+  shotDate: "",
   workType: "unknown",
   seriesCount: null,
   tone: "unknown",
@@ -212,6 +239,9 @@ const defaultProfile: Profile = {
   residence: "unknown",
   socialEntry: "unknown",
   publicSocialAccount: "unknown",
+  platformEntry: "unknown",
+  canShootNew: "unknown",
+  captureDevice: "unknown",
 };
 
 const verdictMeta: Record<Verdict, { label: string; mark: string }> = {
@@ -227,6 +257,12 @@ const opportunityKindLabels: Record<NonNullable<Opportunity["opportunityKind"]>,
   curation: "掲載キュレーション",
 };
 
+const discoveryVerdictMeta: Record<DiscoveryVerdict, { label: string; mark: string }> = {
+  ready: { label: "使える見込み", mark: "○" },
+  prepare: { label: "準備・確認あり", mark: "△" },
+  not_fit: { label: "今回の条件外", mark: "×" },
+};
+
 function normalizeProfile(value: Partial<Profile>): Profile {
   const subjects = Array.isArray(value.subjects)
     ? value.subjects.filter((subject): subject is Subject => subject in subjectLabels)
@@ -235,6 +271,7 @@ function normalizeProfile(value: Partial<Profile>): Profile {
     ...defaultProfile,
     ...value,
     shotYear: value.shotYear ? Number(value.shotYear) : null,
+    shotDate: typeof value.shotDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value.shotDate) ? value.shotDate : "",
     seriesCount: value.seriesCount ? Number(value.seriesCount) : null,
     age: value.age ? Number(value.age) : null,
     subjects,
@@ -601,6 +638,135 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
   };
 }
 
+function assessDiscovery(channel: DiscoveryChannel, profile: Profile, photo: PhotoInfo | null): DiscoveryAssessment {
+  const checks: DiscoveryCheck[] = [];
+  const add = (kind: DiscoveryCheck["kind"], label: string, detail: string) => checks.push({ kind, label, detail });
+
+  if (profile.workType === "unknown") {
+    add("check", "作品形式", `${channel.acceptedWorkTypes.map((type) => type === "single" ? "単写真" : "シリーズ").join("・")}の入口です`);
+  } else if (channel.acceptedWorkTypes.includes(profile.workType)) {
+    add("pass", "作品形式", profile.workType === "single" ? "単写真で使える入口" : "シリーズで使える入口");
+  } else {
+    add("fail", "作品形式", profile.workType === "single" ? "完成した作品群が必要です" : "単写真向けの入口です");
+  }
+
+  if (channel.requiresSocial) {
+    if (profile.socialEntry === "unknown") {
+      add("check", "SNS投稿", "SNS投稿型の入口を使えるか未回答");
+    } else if (profile.socialEntry === "no") {
+      add("fail", "SNS投稿", "SNS投稿を使わない回答のため、この入口は使えません");
+    } else if (channel.requiresPublicAccount && profile.publicSocialAccount === "unknown") {
+      add("check", "公開アカウント", "主催者が確認できる公開設定か未回答");
+    } else if (channel.requiresPublicAccount && profile.publicSocialAccount === "no") {
+      add("fail", "公開アカウント", "非公開アカウントでは主催者が投稿を確認できません");
+    } else {
+      add("pass", "SNS投稿", "投稿方式と公開条件に対応");
+    }
+  }
+
+  if (channel.requiresPlatformAccount) {
+    if (profile.platformEntry === "unknown") {
+      add("check", "サービス登録", `${channel.platforms.join("／")}のアカウントを使えるか未回答`);
+    } else if (profile.platformEntry === "no") {
+      add("fail", "サービス登録", "外部写真サービスへ登録しない回答のため、この入口は使えません");
+    } else {
+      add("pass", "サービス登録", `${channel.platforms.join("／")}から提出できると回答`);
+    }
+  }
+
+  if (channel.eligibleDeviceGroups?.length) {
+    if (profile.captureDevice === "unknown") {
+      add("check", "撮影機材", channel.eligibilityLabel);
+    } else if (channel.eligibleDeviceGroups.includes(profile.captureDevice as "oppo_family" | "leica")) {
+      add("pass", "撮影機材", channel.eligibilityLabel);
+    } else {
+      add("fail", "撮影機材", channel.eligibilityLabel);
+    }
+  }
+
+  if (channel.capturePolicy === "within_6_months") {
+    if (!profile.shotDate) {
+      add("check", "撮影日", "投稿時点から6か月以内か確認するため、撮影日を入力してください");
+    } else {
+      const shotAt = new Date(`${profile.shotDate}T00:00:00Z`);
+      const cutoff = new Date();
+      cutoff.setUTCMonth(cutoff.getUTCMonth() - 6);
+      add(
+        shotAt.getTime() >= cutoff.getTime() ? "pass" : "fail",
+        "撮影日",
+        shotAt.getTime() >= cutoff.getTime() ? "直近6か月以内" : "投稿時点から6か月を超えるため対象外",
+      );
+    }
+  } else if (channel.capturePolicy === "new_after_announcement") {
+    if (profile.canShootNew === "unknown") {
+      add("check", "新規撮影", "この傑作の再利用ではなく、週テーマ発表後に新しく撮れるか未回答");
+    } else if (profile.canShootNew === "no") {
+      add("fail", "新規撮影", "手元の過去作は対象外。テーマ発表後の新作だけが対象");
+    } else {
+      add("prepare", "新規撮影", "最新テーマを確認してから新しく撮影");
+    }
+  } else if (channel.capturePolicy === "existing_explicit") {
+    add("pass", "撮影時期", "過去のアップロードも選出対象になり得ると公式FAQに明記");
+  } else if (channel.capturePolicy === "listing_specific") {
+    add("prepare", "撮影時期", "個別募集の撮影日・公開歴条件を確認");
+  } else {
+    add("check", "撮影時期", "既存作品を使えるか公式ページで明記を確認できず");
+  }
+
+  const today = new Date();
+  const todayKey = today.toISOString().slice(0, 10);
+  if (channel.activeFrom && todayKey < channel.activeFrom) {
+    add("prepare", "開催期間", `${channel.activeFrom}から受付。今は準備期間`);
+  }
+  if (channel.activeUntil && todayKey > channel.activeUntil) {
+    add("fail", "開催期間", `${channel.activeUntil}で終了。次回開催を確認してください`);
+  } else if (channel.activeUntil && todayKey >= (channel.activeFrom ?? "")) {
+    add("pass", "開催期間", `${channel.activeUntil}までの開催期間内`);
+  }
+
+  if (channel.themeVariable) {
+    add("prepare", "現在のテーマ", "月・週・個別募集ごとに変わるため、公式ページで最新テーマを確認");
+  }
+
+  if (!channel.subjects.includes("all")) {
+    const shared = profile.subjects.filter((subject) => channel.subjects.includes(subject));
+    if (profile.subjects.length === 0) {
+      add("check", "題材", "作品の題材を選ぶと、この入口との共通点を確認できます");
+    } else if (shared.length > 0) {
+      add("fit", "題材", `${shared.map((subject) => subjectLabels[subject]).join("・")}の掲載領域あり`);
+    } else {
+      add("check", "題材", "現在の自己申告タグと公式掲載領域に共通なし。個別テーマを確認");
+    }
+  }
+
+  if (channel.formats?.length || channel.maxFileMB) {
+    if (!photo) {
+      add("prepare", "提出ファイル", "写真を置くと形式・容量も確認できます");
+    } else {
+      if (channel.formats?.length) {
+        add(
+          channel.formats.includes(photo.type) ? "pass" : "prepare",
+          "ファイル形式",
+          channel.formats.includes(photo.type) ? "JPG要件に一致" : "JPGへ書き出しが必要",
+        );
+      }
+      if (channel.maxFileMB) {
+        add(
+          photo.sizeMB <= channel.maxFileMB ? "pass" : "prepare",
+          "ファイル容量",
+          photo.sizeMB <= channel.maxFileMB ? `${photo.sizeMB.toFixed(1)}MBは上限内` : `${channel.maxFileMB}MB以下へ書き出しが必要`,
+        );
+      }
+    }
+  }
+
+  const hasFail = checks.some((check) => check.kind === "fail");
+  const hasUnresolved = checks.some((check) => check.kind === "check" || check.kind === "prepare");
+  const verdict: DiscoveryVerdict = hasFail ? "not_fit" : hasUnresolved ? "prepare" : "ready";
+  const score = checks.reduce((total, check) => total + (check.kind === "pass" ? 3 : check.kind === "fit" ? 2 : check.kind === "prepare" ? -1 : check.kind === "check" ? -2 : -10), 0);
+  return { channel, verdict, checks, score };
+}
+
 function Segmented<T extends string>({
   value,
   options,
@@ -707,6 +873,20 @@ export default function Home() {
     );
   }, [assessments]);
 
+  const discoveryAssessments = useMemo(() => {
+    const verdictOrder: Record<DiscoveryVerdict, number> = { ready: 0, prepare: 1, not_fit: 2 };
+    return discoveryChannels
+      .map((channel) => assessDiscovery(channel, profile, photo))
+      .sort((a, b) => verdictOrder[a.verdict] - verdictOrder[b.verdict] || b.score - a.score);
+  }, [photo, profile]);
+
+  const discoveryCounts = useMemo(() => {
+    return discoveryAssessments.reduce(
+      (result, item) => ({ ...result, [item.verdict]: result[item.verdict] + 1 }),
+      { ready: 0, prepare: 0, not_fit: 0 } as Record<DiscoveryVerdict, number>,
+    );
+  }, [discoveryAssessments]);
+
   const savedItems = saved
     .map((id) => opportunities.find((item) => item.id === id))
     .filter((item): item is Opportunity => Boolean(item));
@@ -809,7 +989,7 @@ export default function Home() {
           <p className="eyebrow">ONE PHOTOGRAPH · WORLDWIDE DESTINATIONS</p>
           <h1>この一枚を、<br /><em>どこへ出せるか。</em></h1>
           <p className="hero-lede">
-            世界から応募できる賞・オープンコールを含む{opportunities.length}の応募ルートから探します。公式フォームだけでなく、ハッシュタグ投稿や編集部キュレーションも別の入口として扱います。写真は任意です。
+            世界から応募できる賞・オープンコールを含む{opportunities.length}の応募ルートと、{discoveryChannels.length}のキュレーション／探索経路から探します。公式フォームだけでなく、ハッシュタグ、写真プラットフォーム、編集部への作品送付も別の入口として照合します。写真は任意です。
           </p>
           <div className="hero-principles" aria-label="このサイトの原則">
             <span><b>01</b> 写真は端末内だけ</span>
@@ -908,10 +1088,38 @@ export default function Home() {
                   max="2027"
                   value={profile.shotYear ?? ""}
                   placeholder="例 2026"
-                  onChange={(event) => updateProfile("shotYear", event.target.value ? Number(event.target.value) : null)}
+                  onChange={(event) => {
+                    const shotYear = event.target.value ? Number(event.target.value) : null;
+                    setProfile((current) => ({
+                      ...current,
+                      shotYear,
+                      shotDate: current.shotDate && shotYear !== Number(current.shotDate.slice(0, 4)) ? "" : current.shotDate,
+                    }));
+                  }}
                 />
                 <small>年</small>
               </label>
+              <label>撮影日（分かる場合）</label>
+              <input
+                type="date"
+                max="2027-12-31"
+                value={profile.shotDate}
+                onChange={(event) => {
+                  const shotDate = event.target.value;
+                  setProfile((current) => ({
+                    ...current,
+                    shotDate,
+                    shotYear: shotDate ? Number(shotDate.slice(0, 4)) : current.shotYear,
+                  }));
+                }}
+              />
+              <label>撮影したカメラ／端末</label>
+              <select value={profile.captureDevice} onChange={(event) => updateProfile("captureDevice", event.target.value as Profile["captureDevice"])}>
+                <option value="unknown">未回答・不明</option>
+                <option value="oppo_family">OPPO／OnePlus／realme</option>
+                <option value="leica">Leicaボディ</option>
+                <option value="other">その他</option>
+              </select>
             </div>
           </section>
 
@@ -1026,6 +1234,20 @@ export default function Home() {
                   />
                 </>
               )}
+              <label>Flickr・LFI・Photocrowdなどへ登録して提出できるか</label>
+              <Segmented
+                label="外部写真サービスからの応募"
+                value={profile.platformEntry}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "登録しない" }, { value: "yes", label: "使える" }]}
+                onChange={(value) => updateProfile("platformEntry", value)}
+              />
+              <label>週テーマに合わせた新作も撮るか</label>
+              <Segmented
+                label="新作撮影型の入口"
+                value={profile.canShootNew}
+                options={[{ value: "unknown", label: "未回答" }, { value: "no", label: "手元の写真だけ" }, { value: "yes", label: "新作も撮る" }]}
+                onChange={(value) => updateProfile("canShootNew", value)}
+              />
               <label>応募費用の希望</label>
               <Segmented
                 label="応募費用の希望"
@@ -1164,43 +1386,65 @@ export default function Home() {
         <div className="section-heading">
           <p>BEYOND THE ENTRY FORM</p>
           <h2 id="channels-title">フォーム以外の入口</h2>
-          <span>締切のある賞とは別に、週次・月次・常設で写真を拾う編集部やコミュニティがあります。受賞と掲載を混同せず、入口の仕組みとして並べます。</span>
+          <span>{discoveryChannels.length}の週次・月次・常設入口を、作品カルテと照合します。受賞・掲載・参加・新作撮影を混同せず、次にすることまで示します。</span>
         </div>
 
-        <div className="channel-key" aria-label="入口の区分">
-          <span><b>賞・公募</b>締切と応募資格を照合</span>
-          <span><b>掲載キュレーション</b>投稿や作品群から編集部が選出</span>
-          <span><b>探索先</b>募集が日々変わるため個別条件を再確認</span>
+        <div className="channel-key" aria-label="探索先の判定件数">
+          <span><b><i>{discoveryCounts.ready}</i> 使える見込み</b>回答済み条件では大きな不一致なし</span>
+          <span><b><i>{discoveryCounts.prepare}</i> 準備・確認あり</b>タグ・テーマ・撮影日・登録などが必要</span>
+          <span><b><i>{discoveryCounts.not_fit}</i> 今回の条件外</b>機材・公開方法・作品形式などが不一致</span>
         </div>
 
         <div className="channel-grid">
-          {discoveryChannels.map((channel, index) => {
+          {discoveryAssessments.map((assessment, index) => {
+            const channel = assessment.channel;
+            const meta = discoveryVerdictMeta[assessment.verdict];
             const evidenceValues = Object.values(channel.evidence);
             const evidenceCovered = evidenceValues.filter((value) => value === "explicit" || value === "conditional" || value === "not_applicable").length;
+            const primaryChecks = assessment.checks.filter((check) => check.kind !== "pass").slice(0, 4);
             return (
-              <article className="channel-card" key={channel.id}>
+              <article className={`channel-card channel-${assessment.verdict}`} key={channel.id}>
                 <div className="channel-number">PATH {String(index + 1).padStart(2, "0")}</div>
                 <div className="channel-titleline">
                   <div>
                     <p>{channel.organizer}</p>
                     <h3>{channel.title}</h3>
                   </div>
-                  <span>{channel.kind}</span>
+                  <div className="channel-labels">
+                    <span>{channel.kind}</span>
+                    <b><i aria-hidden="true">{meta.mark}</i>{meta.label}</b>
+                  </div>
                 </div>
                 <dl>
                   <div><dt>頻度</dt><dd>{channel.cadence}</dd></div>
                   <div><dt>入口</dt><dd>{channel.submissionLabel}</dd></div>
                   <div><dt>到達点</dt><dd>{channel.outcome}</dd></div>
+                  <div><dt>前提</dt><dd>{channel.eligibilityLabel}</dd></div>
                 </dl>
+                {primaryChecks.length > 0 ? (
+                  <ul className="channel-match-list" aria-label="この作品との照合">
+                    {primaryChecks.map((check, checkIndex) => (
+                      <li className={`channel-check-${check.kind}`} key={`${check.label}-${checkIndex}`}>
+                        <span>{check.kind === "fail" ? "×" : check.kind === "prepare" ? "↺" : check.kind === "fit" ? "◇" : "△"}</span>
+                        <p><b>{check.label}</b>{check.detail}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="channel-ready-line">回答済み条件の範囲では、この入口を使う準備ができています。</p>
+                )}
                 {(channel.requiredTags.length > 0 || channel.requiredAccountTag) && (
                   <div className="channel-tags" aria-label="必要なタグ">
                     {channel.requiredTags.map((tag) => <code key={tag}>{tag}</code>)}
                     {channel.requiredAccountTag && <code>{channel.requiredAccountTag}</code>}
                   </div>
                 )}
-                <ul>
-                  {channel.checklist.map((item) => <li key={item}>{item}</li>)}
-                </ul>
+                <details className="channel-checklist">
+                  <summary>投稿前のチェックリスト</summary>
+                  <ul>
+                    {channel.checklist.map((item) => <li key={item}>{item}</li>)}
+                  </ul>
+                </details>
                 <p className="channel-warning">{channel.warning}</p>
                 <div className="channel-foot">
                   <span>公式確認 {evidenceCovered}/{evidenceValues.length}項目 · {channel.verifiedAt}</span>
