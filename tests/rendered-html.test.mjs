@@ -2,33 +2,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  return worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html", host: "localhost" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-}
-
-test("server-renders the photo contest matching experience", async () => {
-  const response = await render();
-  assert.equal(response.status, 200);
-  assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
-
-  const html = await response.text();
+test("statically exports the photo contest matching experience", async () => {
+  const html = await readFile(new URL("../out/index.html", import.meta.url), "utf8");
   assert.match(html, /<html lang="ja"/i);
   assert.match(html, /写真コンテストものさし/);
   assert.match(html, /この一枚を、[\s\S]*どこへ出せるか/);
@@ -164,7 +139,8 @@ test("seed data keeps application routes and evidence auditable", async () => {
   assert.match(page, /世界各国から応募可/);
   assert.match(page, /フォーム以外の入口/);
   assert.match(page, /\/quality-report\.html/);
-  assert.match(layout, /x-forwarded-host/);
+  assert.match(layout, /metadataBase/);
+  assert.doesNotMatch(layout, /next\/headers/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.match(qualityReport, /106/);
   assert.match(qualityReport, /47\/47/);
