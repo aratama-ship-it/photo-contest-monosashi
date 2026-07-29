@@ -71,6 +71,7 @@ type Opportunity = {
   applicantScopeLabel?: string;
   eligibleFromJapan?: boolean;
   eligibleResidenceGroups?: string[];
+  localEligibilityLabel?: string;
   entryLanguage?: string;
   opportunityKind?: "contest" | "open_call" | "challenge" | "curation";
   submissionMethod?: "web_form" | "platform_upload" | "hashtag" | "email" | "hybrid" | "mail_or_in_person";
@@ -89,7 +90,8 @@ type Opportunity = {
   minAge?: number;
   maxAge?: number;
   studentOnly: boolean;
-  workType: "single" | "series" | "both";
+  studentEligibilityLabel?: string;
+  workType: "single" | "series" | "both" | "unknown";
   seriesMin?: number;
   seriesMax?: number;
   shotYearFrom?: number;
@@ -387,6 +389,10 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     }
   }
 
+  if (opportunity.localEligibilityLabel) {
+    add("check", "地域・所属資格", opportunity.localEligibilityLabel);
+  }
+
   if (opportunity.submissionMethod === "hashtag" && opportunity.socialPostingRequired !== false) {
     if (profile.socialEntry === "unknown") {
       add("check", "SNS投稿応募", "ハッシュタグ投稿を使えるか未回答");
@@ -413,7 +419,9 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     add("check", "募集状態", "募集開始・受付状態を公式応募画面で確認してください");
   }
 
-  if (profile.workType === "unknown") {
+  if (opportunity.workType === "unknown") {
+    add("check", "作品形式", "単写真・シリーズの可否を公式応募要項で確認してください");
+  } else if (profile.workType === "unknown") {
     add(
       opportunity.workType === "both" ? "pass" : "check",
       "作品形式",
@@ -429,7 +437,7 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     );
   }
 
-  if (profile.workType === "series" && opportunity.workType !== "single") {
+  if (profile.workType === "series" && opportunity.workType !== "single" && opportunity.workType !== "unknown") {
     const min = opportunity.seriesMin ?? 1;
     const max = opportunity.seriesMax ?? 100;
     if (profile.seriesCount === null) {
@@ -459,7 +467,13 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
   }
 
   if (opportunity.studentOnly) {
-    if (profile.student === "unknown") {
+    if (opportunity.studentEligibilityLabel && profile.student === "unknown") {
+      add("check", "学生資格", opportunity.studentEligibilityLabel);
+    } else if (opportunity.studentEligibilityLabel && profile.student === "no") {
+      add("fail", "学生資格", opportunity.studentEligibilityLabel);
+    } else if (opportunity.studentEligibilityLabel) {
+      add("check", "学生資格", opportunity.studentEligibilityLabel);
+    } else if (profile.student === "unknown") {
       add("check", "学生資格", "写真プログラムを履修中か未回答");
     } else if (profile.student === "no") {
       add("fail", "学生資格", "高等教育の写真プログラム履修者が対象");
@@ -542,7 +556,9 @@ function assess(opportunity: Opportunity, profile: Profile, photo: PhotoInfo | n
     add("fit", "部門候補", "自己申告した題材との共通タグなし。応募不可ではありませんが、別部門も確認してください");
   }
 
-  if (profile.tone === "unknown" && opportunity.tones.length === 1) {
+  if (opportunity.tones.length === 0) {
+    add("check", "カラー形式", "カラー／モノクロの可否は公式応募要項で確認してください");
+  } else if (profile.tone === "unknown" && opportunity.tones.length === 1) {
     add("check", "カラー形式", "カラー／モノクロが未回答");
   } else if (profile.tone === "unknown") {
     add("pass", "カラー形式", "カラー・モノクロの両方に対応");
@@ -1118,7 +1134,7 @@ export default function Home() {
         </a>
         <nav aria-label="メインナビゲーション">
           <a href="#measure">この写真を測る</a>
-          <a href="#local-coverage">地方公募の空白</a>
+          <a href="#local-coverage">地方公募の網羅度</a>
           <a href="#channels">フォーム以外の入口</a>
           <a href="#trends">過去作の手掛かり</a>
           <button type="button" onClick={() => setSavedOpen(true)}>
@@ -1445,12 +1461,14 @@ export default function Home() {
             <h2 id="local-coverage-title">地方公募の調査台帳</h2>
           </div>
           <p>
-            地方自治体・観光協会などの公式要項をたどり、撮影地が限定される小規模公募を県単位で記録しています。色のない県は「公募がない」のではなく、現行募集をまだ収録できていない調査空白です。
+            {coveredPrefectureCount === prefectures.length
+              ? "地方自治体・観光協会などの公式要項をたどり、47都道府県すべてで少なくとも1件の現行・次回募集を確認しました。これは全件収録の宣言ではなく、締切後も次回の公式募集へ更新していくための基準線です。"
+              : "地方自治体・観光協会などの公式要項をたどり、撮影地が限定される小規模公募を県単位で記録しています。色のない県は「公募がない」のではなく、現行募集をまだ収録できていない調査空白です。"}
           </p>
         </div>
         <div className="coverage-tally" aria-label="地方公募の調査状況">
           <span><b>{coveredPrefectureCount}</b><small>確認済みの都道府県</small></span>
-          <span><b>{prefectures.length - coveredPrefectureCount}</b><small>未収録・確認中</small></span>
+          <span><b>{prefectures.length - coveredPrefectureCount}</b><small>未収録・確認中（現時点）</small></span>
           <span><b>{Object.values(localRouteCounts).reduce((total, count) => total + count, 0)}</b><small>地域限定ルート</small></span>
         </div>
         <p className="coverage-instruction">県名を選ぶと、その撮影地を作品カルテへ入れて国内公募の判定結果へ移動します。</p>
@@ -1470,7 +1488,7 @@ export default function Home() {
               >
                 <small>{String(index + 1).padStart(2, "0")}</small>
                 <span>{prefecture}</span>
-                <b>{covered ? `${routeCount}件` : "空白"}</b>
+                <b>{covered ? `${routeCount}件` : "確認中"}</b>
               </button>
             );
           })}

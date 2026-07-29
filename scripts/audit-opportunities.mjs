@@ -69,6 +69,58 @@ const officialHosts = new Set([
   "higashikagawa.net",
   "tosacity-kankou.com",
   "www.city.goto.nagasaki.jp",
+  "www.nebuta.jp",
+  "www.miyagi-kankou.or.jp",
+  "www.pref.akita.lg.jp",
+  "www.pref.yamagata.jp",
+  "www.town.ibaraki.lg.jp",
+  "www.city.tochigi.lg.jp",
+  "www.pref.gunma.jp",
+  "www.city.chiba.jp",
+  "tokyocameraclub.com",
+  "www.city.yokohama.lg.jp",
+  "www.pref.toyama.jp",
+  "www.pref.fukui.lg.jp",
+  "www.pref.shizuoka.jp",
+  "aichinow.pref.aichi.jp",
+  "www.pref.kyoto.jp",
+  "www.pref.wakayama.lg.jp",
+  "www.pref.tottori.lg.jp",
+  "www.pref.shimane.lg.jp",
+  "www.pref.okayama.jp",
+  "www.pref.yamaguchi.lg.jp",
+  "www.pref.saga.lg.jp",
+  "www.pref.okinawa.jp",
+  "www.pref.ehime.jp",
+  "www.town.misaki.osaka.jp",
+  "www.pref.nara.lg.jp",
+  "www.pref.mie.lg.jp",
+  "castle.kumamoto-guide.jp",
+  "www.city-nakatsu.jp",
+  "www.city.miyazaki.miyazaki.jp",
+  "soo-navi.jp",
+  "noto-pokemon.pref.ishikawa.lg.jp",
+  "www.town.tokushima-mugi.lg.jp",
+  "www.mnf21.com",
+  "www.city.tatsuno.lg.jp",
+  "www.fujioishihanaterasu.com",
+  "www.city.akabira.hokkaido.jp",
+  "www.city.ishikari.hokkaido.jp",
+  "www.city.iwaki.lg.jp",
+  "www.pa.thr.mlit.go.jp",
+  "www.rinya.maff.go.jp",
+  "www.metro.tokyo.lg.jp",
+  "www.city.noda.chiba.jp",
+  "www.town.saitama-ina.lg.jp",
+  "www.city.hashima.lg.jp",
+  "www.city.chiryu.aichi.jp",
+  "www.town.shoo.lg.jp",
+  "kyuden-mirai.or.jp",
+  "shikoku-tourism.com",
+  "www.city.ichikikushikino.lg.jp",
+  "www.unesco.org",
+  "europeanphotoawards.com",
+  "awards.xposure.net",
 ]);
 const prefectures = new Set([
   "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
@@ -101,11 +153,11 @@ const discoveryWorkTypes = new Set(["single", "series"]);
 const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 
 assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
-assert.equal(worldwideOpportunities.length, 11, "expected 11 newly audited worldwide entry routes");
+assert.equal(worldwideOpportunities.length, 14, "expected 14 independently audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
-assert.equal(domesticOpportunities.length, 24, "expected 24 independently audited domestic entry routes");
+assert.equal(domesticOpportunities.length, 74, "expected 74 independently audited domestic entry routes");
 assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
-assert.equal(opportunities.length, 53, "expected 53 independently selectable entry routes");
+assert.equal(opportunities.length, 106, "expected 106 independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
 assert.equal(
@@ -115,7 +167,7 @@ assert.equal(
 );
 
 for (const item of opportunities) {
-  assert.equal(item.verifiedAt, "2026-07-23", `${item.id}: verification date is stale`);
+  assert.ok(["2026-07-23", "2026-07-24"].includes(item.verifiedAt), `${item.id}: verification date is stale`);
   assert.ok(Number.isFinite(Date.parse(item.deadline)), `${item.id}: deadline is not parseable`);
   assert.ok(officialHosts.has(new URL(item.sourceUrl).host), `${item.id}: source is not on the audited official-host list`);
   assert.deepEqual(Object.keys(item.evidence).sort(), evidenceKeys.toSorted(), `${item.id}: evidence cells are incomplete`);
@@ -177,8 +229,8 @@ assert.ok(
 
 const localRoutes = domesticOpportunities.filter((item) => item.shootingPrefectures?.length);
 const coveredPrefectures = new Set(localRoutes.flatMap((item) => item.shootingPrefectures));
-assert.equal(localRoutes.length, 12, "expected 12 officially audited local shooting-area routes");
-assert.equal(coveredPrefectures.size, 12, "the first local audit must cover 12 distinct prefectures");
+assert.equal(localRoutes.length, 59, "expected 59 officially audited local shooting-area routes");
+assert.equal(coveredPrefectures.size, 47, "the expanded local audit must cover all 47 distinct prefectures");
 assert.ok(
   localRoutes.every((item) => item.shotLocationRule && item.shootingPrefectures.every((prefecture) => prefectures.has(prefecture))),
   "local routes must include a detailed shooting-area rule and valid Japanese prefectures",
@@ -303,6 +355,88 @@ assert.deepEqual(iijima?.shootingPrefectures, ["長野県"], "Iijima must retain
 const gotoIslands = domesticOpportunities.find((item) => item.id === "goto-world-heritage-island-photo-2026");
 assert.deepEqual(gotoIslands?.shootingPrefectures, ["長崎県"], "Goto must retain its Nagasaki shooting-area gate");
 assert.equal(gotoIslands?.maxFileMB, 15, "Goto web entry allows files up to 15MB");
+
+const expandedLocalPrefectures = new Set([
+  "青森県", "宮城県", "秋田県", "山形県", "茨城県", "栃木県",
+  "群馬県", "千葉県", "東京都", "神奈川県", "富山県", "福井県",
+]);
+assert.ok(
+  [...expandedLocalPrefectures].every((prefecture) => coveredPrefectures.has(prefecture)),
+  "the second local audit must cover the 12 newly researched prefectures",
+);
+const mogamiOguni = domesticOpportunities.find((item) => item.id === "mogami-oguni-river-photo-contest-2026");
+assert.equal(mogamiOguni?.rightsPolicy, "needs_check", "Mogami Oguni PDF gaps must remain fail-closed");
+assert.equal(mogamiOguni?.evidence.entrant, "not_researched", "Mogami Oguni entrant rules must not be inferred");
+const fukuiCuration = domesticOpportunities.find((item) => item.id === "fukui-life-favorite-curation-2026");
+assert.equal(fukuiCuration?.opportunityKind, "curation", "Fukui repost selection must not be mislabeled as a ranked contest");
+assert.equal(fukuiCuration?.requiresPublicSocial, true, "Fukui curation requires a public Instagram account");
+
+const thirdLocalPrefectures = new Set([
+  "静岡県", "愛知県", "京都府", "和歌山県", "鳥取県", "島根県",
+  "岡山県", "山口県", "愛媛県", "佐賀県", "沖縄県",
+]);
+assert.ok(
+  [...thirdLocalPrefectures].every((prefecture) => coveredPrefectures.has(prefecture)),
+  "the third local audit must cover the 11 newly researched prefectures",
+);
+const daisenOki = domesticOpportunities.find((item) => item.id === "daisen-oki-national-park-90-photo-contest");
+assert.equal(daisenOki?.workType, "unknown", "Daisen-Oki work type must remain unknown until the full rules are available");
+assert.equal(daisenOki?.rightsPolicy, "needs_check", "Daisen-Oki rights must remain fail-closed");
+const okinawaFukugi = domesticOpportunities.find((item) => item.id === "okinawa-fukugi-digital-photo-contest-13");
+assert.equal(okinawaFukugi?.rightsPolicy, "explicit", "Okinawa Fukugi must preserve its explicit public-purpose license");
+assert.deepEqual(okinawaFukugi?.shootingPrefectures, ["沖縄県"], "Okinawa Fukugi must retain its Okinawa shooting-area gate");
+const ehimeAssembly = domesticOpportunities.find((item) => item.id === "ehime-prefectural-assembly-high-school-photo-contest-2");
+assert.equal(ehimeAssembly?.studentOnly, true, "Ehime Assembly is limited to the listed local-school students");
+assert.ok(ehimeAssembly?.localEligibilityLabel, "Ehime Assembly must retain its local-school eligibility warning");
+
+const fourthLocalPrefectures = new Set([
+  "石川県", "山梨県", "三重県", "大阪府", "兵庫県", "奈良県",
+  "徳島県", "福岡県", "熊本県", "大分県", "宮崎県", "鹿児島県",
+]);
+assert.ok(
+  [...fourthLocalPrefectures].every((prefecture) => coveredPrefectures.has(prefecture)),
+  "the fourth local audit must cover the final 12 previously unrecorded prefectures",
+);
+const misakiTown = domesticOpportunities.find((item) => item.id === "misaki-town-photo-contest-2026");
+assert.deepEqual(misakiTown?.shootingPrefectures, ["大阪府"], "Misaki Town must retain its Osaka shooting-area gate");
+assert.equal(misakiTown?.rightsPolicy, "explicit", "Misaki Town winning-work usage must remain visible");
+const oshiNara = domesticOpportunities.find((item) => item.id === "oshi-nara-photo-contest-2026-spring-summer");
+assert.equal(oshiNara?.submissionMethod, "hashtag", "Oshi Nara must preserve its Instagram hashtag route");
+assert.equal(oshiNara?.requiresFollow, true, "Oshi Nara must preserve the official-account follow step");
+const nakatsu = domesticOpportunities.find((item) => item.id === "nakatsu-instagram-photo-contest-2026-july");
+assert.deepEqual(nakatsu?.shootingPrefectures, ["大分県"], "Nakatsu must retain its Oita shooting-area gate");
+assert.equal(nakatsu?.requiresPublicSocial, true, "Nakatsu requires a public Instagram account");
+const mugiMinami = domesticOpportunities.find((item) => item.id === "mugi-minami-photo-contest-2026");
+assert.equal(mugiMinami?.status, "expected", "Mugi-Minami starts on 2026-08-01 and must remain upcoming");
+assert.equal(mugiMinami?.submissionMethod, "platform_upload", "Mugi-Minami must retain official LINE submission");
+const tatsuno = domesticOpportunities.find((item) => item.id === "tatsuno-tourism-photo-contest-2026");
+assert.equal(tatsuno?.minAge, 18, "Tatsuno requires entrants aged 18 or older");
+assert.deepEqual(tatsuno?.shootingPrefectures, ["兵庫県"], "Tatsuno must retain its Hyogo shooting-area gate");
+const hanaTerrace = domesticOpportunities.find((item) => item.id === "fuji-oishi-hana-terrace-summer-photo-contest-2026");
+assert.equal(hanaTerrace?.requiresPublicSocial, true, "Hana Terrace requires a public Instagram account");
+assert.deepEqual(hanaTerrace?.shootingPrefectures, ["山梨県"], "Hana Terrace must retain its Yamanashi shooting-area gate");
+
+const akabira = domesticOpportunities.find((item) => item.id === "akabira-photo-contest-2026");
+assert.deepEqual(akabira?.shootingPrefectures, ["北海道"], "Akabira must retain its Hokkaido shooting-area gate");
+assert.equal(akabira?.editPolicy, "no_composite", "Akabira must preserve its no-composite condition");
+const goodIshikari = domesticOpportunities.find((item) => item.id === "good-ishikari-photo-contest-2026");
+assert.equal(goodIshikari?.aiPolicy, "photo_origin_required", "Goodishikari must preserve its generative-AI exclusion");
+assert.equal(goodIshikari?.simultaneousPolicy, "not_allowed", "Goodishikari must preserve its other-contest exclusion");
+const iwaki = domesticOpportunities.find((item) => item.id === "oshi-machi-iwaki-photo-contest-2026");
+assert.deepEqual(iwaki?.shootingPrefectures, ["福島県"], "Iwaki must retain its Fukushima shooting-area gate");
+assert.equal(iwaki?.editPolicy, "basic_only", "Iwaki must preserve its basic-adjustment-only policy");
+const hashima = domesticOpportunities.find((item) => item.id === "hashima-no-miryoku-2026");
+assert.equal(hashima?.opportunityKind, "curation", "Hashima repost selection must remain a curation route");
+assert.equal(hashima?.requiresPublicSocial, true, "Hashima curation requires a public Instagram account");
+const ichikikushikino = domesticOpportunities.find((item) => item.id === "ichikikushikino-photo-contest-2026");
+assert.deepEqual(ichikikushikino?.shootingPrefectures, ["鹿児島県"], "Ichikikushikino must retain its Kagoshima shooting-area gate");
+assert.equal(ichikikushikino?.rightsPolicy, "explicit", "Ichikikushikino winning-work usage must remain visible");
+const unescoSilkRoads = worldwideOpportunities.find((item) => item.id === "unesco-youth-eyes-silk-roads-2026");
+assert.equal(unescoSilkRoads?.evidence.deadline, "conflict", "UNESCO's conflicting GMT labels must remain visible");
+assert.equal(unescoSilkRoads?.minAge, 14, "UNESCO Youth must retain its 14-year lower age");
+const xposure = worldwideOpportunities.find((item) => item.id === "xposure-international-photography-awards-2026");
+assert.equal(xposure?.feeType, "free", "Xposure official page states free entry");
+assert.equal(xposure?.rightsPolicy, "explicit", "Xposure's selected-work licence must remain visible");
 
 const natGeo = discoveryChannels.find((item) => item.id === "natgeo-your-shot");
 assert.ok(natGeo?.requiredTags.includes("#NatGeoYourShot"), "NatGeo discovery channel must preserve the official hashtag");
