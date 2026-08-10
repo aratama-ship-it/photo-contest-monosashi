@@ -22,27 +22,22 @@ const coveredCells = evidenceRows
   .reduce((sum, row) => sum + row.cell_count, 0);
 const coveragePercent = Number((coveredCells / totalCells * 100).toFixed(1));
 const remainingPrefectureCount = 47 - coveredPrefectures.length;
-const fifthAuditRouteIds = new Set([
-  "akabira-photo-contest-2026",
-  "good-ishikari-photo-contest-2026",
-  "oshi-machi-iwaki-photo-contest-2026",
-  "tohoku-minato-photo-contest-2026",
-  "chubu-forest-photo-contest-2026",
-  "tokyo-utility-pole-removal-photo-contest-2026",
-  "photogaya-2026",
-  "iine-noda-photo-contest-2026",
-  "ikoka-moment-2026",
-  "hashima-no-miryoku-2026",
-  "kokooshi-chiryu-instagram-2026",
-  "shoo-town-photo-contest-2026",
-  "kyuden-mirai-kyushu-jukkei-2026",
-  "cool-shikoku-summer-photo-contest-2026",
-  "ichikikushikino-photo-contest-2026",
-  "unesco-youth-eyes-silk-roads-2026",
-  "european-photography-awards-2026",
-  "xposure-international-photography-awards-2026",
+const latestAuditRouteIds = new Set([
+  "nipponkodo-bonphoto-2026",
+  "yumenoshima-photo-contest-2026",
+  "kanazawa-matsuri-fireworks-photo-contest-52",
+  "monovisions-single-2027",
+  "graphis-photography-awards-2027",
+  "form-photo-award-unseen-2027",
+  "sakai-asean-photo-contest-2026",
+  "nihonkai-parkline-photo-contest-2026",
+  "head-on-photo-awards-2026",
+  "international-212-photography-competition-2026",
+  "gose-tourism-photo-contest-38",
+  "shimoyama-photo-contest-2026",
+  "aizuwakamatsu-takara-sagashi-photo-contest-2026",
 ]);
-const fifthAuditRoutes = opportunities.filter((item) => fifthAuditRouteIds.has(item.id));
+const latestAuditRoutes = opportunities.filter((item) => latestAuditRouteIds.has(item.id));
 const coverageNote = remainingPrefectureCount === 0
   ? "47都道府県すべてで、少なくとも1件の現行または次回募集を確認しました。これは全件収録の宣言ではなく、終了後に次回の公式募集へ差し替えるための更新台帳です。"
   : `色のない${remainingPrefectureCount}県は「公募なし」ではなく、現行募集を未収録・確認中です。県が一致しても、市町村・祭り・河川・海辺などの細かな撮影範囲は各公式要項で再確認します。`;
@@ -64,7 +59,7 @@ const chartRows = evidenceRows.map((row) => `
     <small>${escapeHtml(row.screen_treatment)}</small>
   </div>`).join("");
 
-const routeRows = fifthAuditRoutes.map((route) => {
+const routeRows = latestAuditRoutes.map((route) => {
   const kind = route.opportunityKind === "curation"
     ? "キュレーション"
     : route.opportunityKind === "challenge"
@@ -140,12 +135,12 @@ const html = `<!doctype html>
 </head>
 <body>
   <header>
-    <p>DATA QUALITY / 2026-07-24</p>
+    <p>DATA QUALITY / 2026-07-31</p>
     <h1>写真コンテストものさし 精度監査</h1>
     <div><span>地方の小規模公募を、公式要項の確認状態ごと記録する。</span><span><a href="/">ものさしへ戻る</a></span></div>
   </header>
   <main>
-    <p class="lede">第5次調査で、国内の小規模自治体・広域テーマの15ルートと、世界から応募できる国際公募3ルートを追加しました。フォーム、郵送、Instagram、プラットフォーム応募を別の入口として記録し、取得できない規約や書かれていない条件は「要確認」のまま残しています。</p>
+    <p class="lede">夜間の公式再確認で、Instagram投稿型2件と郵送型1件を追加しました。日本香堂の盆フォト、夢の島熱帯植物館、横浜市金沢区の募集について、応募資格、発表歴、加工、権利を分けて記録し、書かれていない条件は「要確認」のまま残しています。</p>
     <div class="metrics" aria-label="監査指標">
       <div><b>${opportunities.length}</b><span>固定締切の応募ルート</span></div>
       <div><b>${domestic.length}</b><span>国内ルート</span></div>
@@ -166,7 +161,7 @@ const html = `<!doctype html>
     </section>
 
     <section>
-      <h2>第5次調査で追加した${fifthAuditRoutes.length}ルート</h2>
+      <h2>夜間公式再確認で追加した${latestAuditRoutes.length}ルート</h2>
       <div class="table-wrap">
         <table>
           <thead><tr><th>募集</th><th>撮影県／主催地域</th><th>締切</th><th>撮影地・応募範囲</th><th>権利条項</th></tr></thead>

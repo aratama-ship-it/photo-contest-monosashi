@@ -4,13 +4,13 @@
     "version": 1,
     "surface": "report",
     "title": "写真コンテストものさし 精度監査",
-    "description": "応募可否で誤って○を出さないための、2026年7月24日時点のデータ品質スナップショット。",
-    "generatedAt": "2026-07-24T00:00:00+09:00",
+    "description": "応募可否で誤って○を出さないための、2026年7月31日時点のデータ品質スナップショット。",
+    "generatedAt": "2026-07-31T13:14:00+09:00",
     "charts": [
       {
         "id": "evidence_coverage_chart",
         "title": "公式根拠ステータスの件数",
-        "subtitle": "106応募ルート × 8条項 = 848セル（2026年7月24日時点）",
+        "subtitle": "139応募ルート × 8条項 = 1112セル（2026年7月31日時点）",
         "type": "bar",
         "dataset": "evidence_states",
         "sourceId": "audit_data_sql",
@@ -96,29 +96,29 @@
       {
         "id": "executive_summary",
         "type": "markdown",
-        "body": "## Executive Summary\n\n- **応募判定は106ルート、探索先は11入口です。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **国内74件と海外・国際32件を主催者所在地で切り替えます。** 応募者の居住地条件、作品の撮影地条件とは分離して照合します。\n- **第5次調査で、国内の小規模／広域公募15ルートと世界から応募できる国際公募3ルートを追加しました。** 47都道府県で少なくとも1件の現行または次回募集を確認していますが、全件収録の宣言ではありません。\n- **撮影都道府県と応募者所在地を分けています。** 県の一致を先に照合し、市町村・施設・河川・海辺・国立公園などの細かな範囲は公式要項での確認事項として残します。\n- **応募ルートは848セル中564セル（66.5%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 母数を広げても、未記載・未調査・公式内不一致を○へ繰り上げません。\n- **審査型・抽選型・キュレーション型を区別します。** 地域のInstagram投稿型、リポスト選考型、国際アップロード型を同じ「当選確率」として混同しません。"
+        "body": "## Executive Summary\n\n- **応募判定は139ルート、探索先は11入口です。** 固定締切の賞・オープンコールと、ハッシュタグ、Flickr、LFI Gallery、VIEWBUGなどの継続的な入口を分けて扱います。\n- **国内97件と海外・国際42件を主催者所在地で切り替えます。** 応募者の居住地条件、作品の撮影地条件とは分離して照合します。\n- **夜間の公式再確認で、国内23ルートと海外・国際10ルートを追加しました。** 御所市、豊田市しもやま観光協会、会津若松市／会津若松観光ビューローの地域公募を加え、応募資格、作品条件、提出方法、AI・加工、権利を分けて記録しています。47都道府県で少なくとも1件の現行または次回募集を確認する状態を維持していますが、全件収録の宣言ではありません。\n- **撮影都道府県と応募者所在地を分けています。** 県の一致を先に照合し、市町村・施設・河川、海辺、国立公園などの細かな範囲は公式要項での確認事項として残します。\n- **応募ルートは1112セル中751セル（67.5%）、探索先は77セル中62セル（80.5%）を確認済み扱いにしました。** 母数を広げても、未記載・未調査・公式内不一致を○へ繰り上げません。\n- **審査型・抽選型・キュレーション型を区別します。** 地域のInstagram投稿型、リポスト選考型、国際アップロード型を同じ「当選確率」として混同しません。"
       },
       {
         "id": "coverage_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## 66.5%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の564セルに対し、公式内の不一致16セル、締切日だけを確認した52セル、未記載105セル、未調査111セルがあります。後者284セルは安全側に倒し、回答が合っていても「要確認」とします。地域Instagram型や応募要領PDFのように公式告知は確認できても全規約を取得できない場合は、空欄を推測で埋めません。"
+        "body": "## 67.5%を確認できても、残りを○にはしない\n\n根拠が明示・条件付き記載の751セルに対し、公式内の不一致18セル、日付のみ確認74セル、未記載155セル、未調査114セルがあります。後者361セルは安全側に倒し、回答が合っていても「要確認」とします。地域Instagram型や応募要領PDFのように公式告知は確認できても全規約を取得できない場合は、空欄を推測で埋めません。"
       },
       {
         "id": "worldwide_finding",
         "type": "markdown",
         "sourceId": "audit_data_sql",
-        "body": "## 世界対応は、世界公募と地域限定を分ける\n\n世界各国から応募できるルートは14件になりました。一方、APEC Photo Contestは日本から参加できますが、対象はAPEC 21エコノミーの市民・永住者に限定されます。主催地、応募可能地域、応募言語を分け、世界公募と日本から参加可能な地域公募を同じ意味に潰しません。"
+        "body": "## 世界対応は、世界公募と地域限定を分ける\n\n世界各国から応募できるルートは35件になりました。Head On Photo Awardsは世界居住者を明示し、International 212 Photography Competitionは年齢・国籍制限なしと明示するため、日本からの応募可否を確認済みとして追加しました。堺市主催のアセアンフォトコンテストは国内主催として分類しつつ、公式に海外応募者のメール提出を案内しています。一方、APEC Photo Contestは日本から参加できますが、対象はAPEC 21エコノミーの市民・永住者に限定されます。主催地、応募可能地域、応募言語を分け、世界公募と日本から参加可能な地域公募を同じ意味に潰しません。"
       },
       {
         "id": "market_scope_finding",
         "type": "markdown",
-        "body": "## 国内と海外は、名称ではなく主催者所在地で分ける\n\n「国内公募」は主催者所在地が日本のルート、「海外・国際公募」はそれ以外としました。国内側は全国規模と、撮影地が限定される地方ルート59件を含む計74ルートです。Tokyo International Foto Awardsは名称にTokyoを含みますが、公式プライバシーポリシーの登録事務所が米国ロサンゼルスのため海外・国際側です。応募者の居住地制限、作品の撮影地、日本から参加できるかは、地域区分と混同せず各カードで別に表示します。"
+        "body": "## 国内と海外は、名称ではなく主催者所在地で分ける\n\n「国内公募」は主催者所在地が日本のルート、「海外・国際公募」はそれ以外としました。国内側は全国規模と、撮影地が限定される地方ルート78件を含む計97ルートです。堺市主催で海外応募者を受け付ける公募も、主催者所在地により国内側です。Tokyo International Foto Awardsは名称にTokyoを含みますが、公式プライバシーポリシーの登録事務所が米国ロサンゼルスのため海外・国際側です。応募者の居住地制限、作品の撮影地、日本から参加できるかは、地域区分と混同せず各カードで別に表示します。"
       },
       {
         "id": "local_coverage_finding",
         "type": "markdown",
-        "body": "## 47/47は網羅宣言ではなく、更新の起点\n\n第5次調査では、既存の県カバーを厚くする小規模自治体・広域テーマの15ルートを追加しました。地域限定ルートは59件となり、各都道府県で少なくとも1件の現行または次回募集を確認しています。ただし各県の全公募を収録した意味ではありません。市町村名、祭り、河川、海辺、国立公園など、県より細かな撮影範囲は自動で○にせず、公式要項へ戻す確認事項です。"
+        "body": "## 47/47は網羅宣言ではなく、更新の起点\n\n2026年7月31日の夜間再確認で、奈良県御所市、愛知県豊田市下山地区、福島県会津若松市の地域公募を加え、地域限定ルートは78件になりました。各都道府県で少なくとも1件の現行または次回募集を確認していますが、各県の全公募を収録した意味ではありません。市町村名、祭り、河川、海辺、国立公園など、県より細かな撮影範囲は自動で○にせず、公式要項へ戻す確認事項です。"
       },
       {
         "id": "evidence_coverage_block",
@@ -160,7 +160,7 @@
       {
         "id": "next_steps",
         "type": "markdown",
-        "body": "## 次に精度を上げる順序\n\n1. 106ルートの締切を月次で再確認し、終了した募集は次回の公式発表へ差し替える。\n2. Instagram投稿型の規約PDF・応募画面に分かれる権利、発表歴、併願、AI・加工の未確認セルを補う。\n3. 47都道府県ごとに市町村・観光協会・指定管理者・地域振興局を探索し、同一開催の重複を避けながら小規模公募を追加する。\n4. 世界から応募できる公募は、日本居住者の可否、締切のタイムゾーン、応募料を公式応募画面まで確認する。\n5. 11探索先の未調査の権利条項を公式規約で補う。"
+        "body": "## 次に精度を上げる順序\n\n1. 139ルートの締切を月次で再確認し、終了した募集は次回の公式発表へ差し替える。\n2. Instagram投稿型の規約PDF・応募画面に分かれる権利、発表歴、併願、AI・加工の未確認セルを補う。\n3. 大河原町の指定ハッシュタグの公式内不一致を、投稿前の最新公式案内で解消する。\n4. 47都道府県ごとに市町村・観光協会・指定管理者・地域振興局を探索し、同一開催の重複を避けながら小規模公募を追加する。\n5. 世界から応募できる公募は、日本居住者の可否、締切のタイムゾーン、応募料を公式応募画面まで確認する。"
       },
       {
         "id": "further_questions",
@@ -170,22 +170,22 @@
       {
         "id": "caveats",
         "type": "markdown",
-        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月24日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。106ルートは世界中・日本全国の全コンテストを網羅したものではありません。47/47は各都道府県で少なくとも1件の現行または次回募集を公式確認した範囲であり、同県内の全公募を示すものではありません。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。"
+        "body": "## Caveats and Assumptions\n\nこのレポートは2026年7月31日の公開情報を固定したスナップショットで、リアルタイム更新ではありません。139ルートは世界中・日本全国の全コンテストを網羅したものではありません。47/47は各都道府県で少なくとも1件の現行または次回募集を公式確認した範囲であり、同県内の全公募を示すものではありません。月替わりタグ、投稿時刻、費用、規約は変わるため、応募資格の最終判断は各公式要項と応募画面で行ってください。"
       }
     ]
   },
   "snapshot": {
     "version": 1,
-    "generatedAt": "2026-07-24T00:00:00+09:00",
+    "generatedAt": "2026-07-31T13:14:00+09:00",
     "status": "ready",
     "datasets": {
       "evidence_states": [
-        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 478, "share_percent": 56.4, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
-        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 86, "share_percent": 10.1, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
-        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 16, "share_percent": 1.9, "screen_treatment": "要確認", "rank": 3 },
-        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 105, "share_percent": 12.4, "screen_treatment": "要確認", "rank": 4 },
-        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 111, "share_percent": 13.1, "screen_treatment": "要確認", "rank": 5 },
-        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 52, "share_percent": 6.1, "screen_treatment": "要確認", "rank": 6 }
+        { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 639, "share_percent": 57.5, "screen_treatment": "回答と一致すれば○候補", "rank": 1 },
+        { "evidence_state": "conditional", "state_label": "条件付き記載", "cell_count": 112, "share_percent": 10.1, "screen_treatment": "条件に応じて○または要確認", "rank": 2 },
+        { "evidence_state": "conflict", "state_label": "公式内で不一致", "cell_count": 18, "share_percent": 1.6, "screen_treatment": "要確認", "rank": 3 },
+        { "evidence_state": "not_stated", "state_label": "公式に明記なし", "cell_count": 155, "share_percent": 13.9, "screen_treatment": "要確認", "rank": 4 },
+        { "evidence_state": "not_researched", "state_label": "未調査", "cell_count": 114, "share_percent": 10.3, "screen_treatment": "要確認", "rank": 5 },
+        { "evidence_state": "date_only", "state_label": "日付のみ確認", "cell_count": 74, "share_percent": 6.7, "screen_treatment": "要確認", "rank": 6 }
       ],
       "discovery_evidence_states": [
         { "evidence_state": "explicit", "state_label": "公式に明示", "cell_count": 51, "share_percent": 66.2, "screen_treatment": "照合条件または説明に使用", "rank": 1 },
@@ -278,6 +278,33 @@
         { "source_label": "九電みらい財団 九州十景 Instagramフォトコンテスト2026 公式案内", "route_count": 1, "deadline_evidence": "2026年9月3日、投稿時刻未確認", "technical_evidence": "公開Instagram・文字／サイン入り不可", "largest_gap": "権利・発表歴・併願", "official_url": "https://kyuden-mirai.or.jp/publicrelations/detail/114" },
         { "source_label": "ツーリズム四国 クール四国 Instagramフォトコンテスト 公式案内", "route_count": 1, "deadline_evidence": "夏季は2026年9月30日、投稿時刻未確認", "technical_evidence": "公開Instagram・詳細規約で確認", "largest_gap": "応募資格・技術・権利", "official_url": "https://shikoku-tourism.com/news/793" },
         { "source_label": "いちき串木野市 第4回フォトコンテスト 公式応募要項", "route_count": 1, "deadline_evidence": "2026年7月31日、各導線の時刻未確認", "technical_evidence": "プリント・Web・Instagramの複数導線", "largest_gap": "発表歴・併願・加工", "official_url": "https://www.city.ichikikushikino.lg.jp/c-sales1/kanko/photocon-4th/documents/youkou.pdf" },
+        { "source_label": "日本香堂 盆フォト2026 公式募集ページ・応募規約", "route_count": 1, "deadline_evidence": "2026年8月23日23:59:59 日本時間", "technical_evidence": "公開XまたはInstagram・1投稿は1枚目が審査対象", "largest_gap": "同時応募・生成AI方針", "official_url": "https://www.nipponkodo.co.jp/bonphoto/kiyaku.html" },
+        { "source_label": "東京都夢の島熱帯植物館 夢の島フォトコンテスト2026 公式募集ページ・応募規約", "route_count": 1, "deadline_evidence": "2026年8月31日、投稿時刻未確認", "technical_evidence": "公開Instagram・1人3作品・ストーリーズ／動画不可", "largest_gap": "年齢・居住地・AI／編集", "official_url": "https://www.yumenoshima.jp/botanicalhall/event/archive/5240" },
+        { "source_label": "横浜市金沢区 第52回金沢まつり花火大会フォトコンテスト 公式募集要項・PDF", "route_count": 1, "deadline_evidence": "2026年9月4日当日消印有効", "technical_evidence": "2Lカラープリント・1人2点・郵送または持参", "largest_gap": "応募資格・発表歴・併願・AI／編集", "official_url": "https://www.city.yokohama.lg.jp/kanazawa/kurashi/kyodo_manabi/kyodo_shien/chiiki/kanazawamaturi/maturi2026/photocon.html" },
+        { "source_label": "大河原町 フォトコンテスト2026 公式募集ページ・実施要領PDF", "route_count": 1, "deadline_evidence": "2026年11月30日、投稿時刻未確認", "technical_evidence": "公開Instagram・フォロー・タイトル・撮影地。指定タグが公式内不一致", "largest_gap": "応募料・同時応募・生成AI、指定タグの最新表記", "official_url": "https://www.town.ogawara.miyagi.jp/8095.htm" },
+        { "source_label": "二本松市観光連盟 「二本松の風景」観光フォトコンテスト 公式募集ページ", "route_count": 2, "deadline_evidence": "Instagramは2027年1月15日、写真の部は10月1日開始〜2027年1月15日（時刻・郵送基準未確認）", "technical_evidence": "Instagramは指定2タグ＋DM・最大5点、写真は四つ切／A4・各部門2点", "largest_gap": "応募資格・生成AI・同時応募", "official_url": "https://www.nihonmatsu-kanko.jp/photocontest" },
+        { "source_label": "Center for Photographic Art 2026 International Juried Exhibition 公式募集要項", "route_count": 1, "deadline_evidence": "2026年10月1日23:59 米国山岳夏時間", "technical_evidence": "CaFE・JPEG・長辺1920px・5MB以下・最大20点", "largest_gap": "発表歴・併願・編集の一般条件", "official_url": "https://www.photography.org/events/call-for-entries-2026-cpa-international-juried-exhibition" },
+        { "source_label": "LensCulture Photobook Prize 2026 公式募集ページ・FAQ・規約", "route_count": 1, "deadline_evidence": "2026年8月12日、時刻未確認", "technical_evidence": "20〜30点・JPEGまたはPNG・JPEGは長辺1200px以上／10MB以下", "largest_gap": "締切時刻・同時応募・主催者所在地", "official_url": "https://www.lensculture.com/photo-competitions/photobook" },
+        { "source_label": "Chromatic Photography Awards 2026 公式応募案内・規約", "route_count": 2, "deadline_evidence": "2026年10月25日、時刻未確認", "technical_evidence": "カラー単写真・JPEG・長辺1200px・透かし等不可", "largest_gap": "締切時刻・公開歴・生成AI・編集", "official_url": "https://chromaticawards.com/information/" },
+        { "source_label": "MonoVisions Photography Awards 2027 公式募集ページ・FAQ", "route_count": 2, "deadline_evidence": "2027年5月16日、時刻未確認", "technical_evidence": "モノクロJPEG・長辺1200px・ロゴ／署名／透かしなし", "largest_gap": "締切時刻・生成AI・撮影時期・同時応募", "official_url": "https://monovisionsawards.com/" },
+        { "source_label": "宇部市 うべきた PHOTO コンテスト 2026 公式募集要項", "route_count": 2, "deadline_evidence": "春夏は2026年8月31日、秋冬は2027年2月19日（各時刻未確認）", "technical_evidence": "Instagram指定タグまたはメール・複数枚投稿は1枚目のみ", "largest_gap": "生成AI・同時応募・応募料、秋冬メール件名", "official_url": "https://www.city.ube.yamaguchi.jp/_res/projects/default_project/_page_/001/025/533/youko.pdf" },
+        { "source_label": "大仙市 はなび・アム花火フォトコンテスト 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年10月12日、時刻・郵送基準未確認", "technical_evidence": "メールは1点5MB以下・800万画素以上推奨、郵送・持参も可", "largest_gap": "著作権／利用権の帰属、AI・加工・同時応募", "official_url": "https://www.city.daisen.lg.jp/events/p20260715112004" },
+        { "source_label": "川崎市 川崎シニアフォトコンテスト2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年8月28日必着、時刻未確認", "technical_evidence": "フォーム提出・写真5MBまで・タイトル20字・メッセージ100字", "largest_gap": "撮影時期・発表歴・併願・AI／編集", "official_url": "https://www.city.kawasaki.jp/350/page/0000188992.html" },
+        { "source_label": "八幡市 令和8年度 やわたのまちの小さな仲間たちフォトコンテスト 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年9月1日、時刻未確認", "technical_evidence": "公式フォーム・1人1点、ファイル仕様は未記載", "largest_gap": "海外居住者・年齢・権利詳細", "official_url": "https://www.city.yawata.kyoto.jp/0000009516.html" },
+        { "source_label": "八戸圏域水道企業団 水のある生活・風景フォトコンテスト2026 公式募集ページ・応募要項", "route_count": 2, "deadline_evidence": "2026年9月30日必着、時刻未確認", "technical_evidence": "六切／ワイド六切／A4プリント、またはJPEG・5MBまでをメール提出", "largest_gap": "締切時刻・生成AIの扱い", "official_url": "https://www.water-supply.hachinohe.aomori.jp/about/annai/oraho/photocon2026.html" },
+        { "source_label": "恵那市 令和8年度恵那市フォト＆ムービーコンテスト 公式募集ページ・同意書リンク", "route_count": 1, "deadline_evidence": "2026年10月12日、時刻未確認（8月3日開始）", "technical_evidence": "公式フォーム申込後に作品データを提出、ファイル仕様は未記載", "largest_gap": "AI・編集・併願・詳細な利用権", "official_url": "https://www.city.ena.lg.jp/kanko_sangyo_business/kankosite/21033.html" },
+        { "source_label": "三種町 広報みたね表紙フォトコンテスト2026 公式募集ページ・開催要項リンク", "route_count": 1, "deadline_evidence": "2026年12月4日、時刻・郵送基準未確認", "technical_evidence": "単写真・1200万画素相当以上、フォームまたは郵送等", "largest_gap": "応募資格・AI・編集・詳細な利用権", "official_url": "https://www.town.mitane.akita.jp/kanko_event/event/2464.html" },
+        { "source_label": "岐阜観光コンベンション協会 岐阜市観光フォトコンテスト2026 公式募集ページ", "route_count": 2, "deadline_evidence": "プリントは2026年12月11日17:30必着、Instagramは同日23:59", "technical_evidence": "四切／ワイド四切／A4プリント、または公開Instagramで指定タグ・メンション", "largest_gap": "居住地・プロ／アマ条件、賞品の国外発送可否", "official_url": "https://www.gifucvb.or.jp/contest/photo.php?eid=00033" },
+        { "source_label": "Graphis Photography Awards 2027 公式Call for Entries・Entry Form・Legal Terms", "route_count": 1, "deadline_evidence": "2026年11月17日最終締切、時刻未確認", "technical_evidence": "単写真または最大7点組。ファイル形式・サイズは未記載", "largest_gap": "年齢、ファイル仕様、過去受賞作、同時応募、通常の編集規定", "official_url": "https://graphis.com/competition/photography-awards-2027/info" },
+        { "source_label": "Form Photo Award x UNSEEN 2027 公式Open Call・公式Picter応募ページ", "route_count": 1, "deadline_evidence": "2026年10月31日23:59 CET", "technical_evidence": "1〜8点の組写真・JPG・長辺1500px以上", "largest_gap": "AI・通常の編集、過去受賞作、同時応募、応募料", "official_url": "https://form.photography/award/open-call-form-unseen" },
+        { "source_label": "Head On Photo Awards 2026 公式募集ページ・規約", "route_count": 1, "deadline_evidence": "2026年8月16日23:59 AEST", "technical_evidence": "JPEG・長辺2400px・2MB未満", "largest_gap": "公開歴・同時応募", "official_url": "https://headon.org.au/awards" },
+        { "source_label": "International 212 Photography Competition 2026 公式応募案内・規約", "route_count": 1, "deadline_evidence": "2026年9月6日23:59 GMT+3", "technical_evidence": "PDF/ZIPのPNG/JPEG・20MBとJPEG・3MBの公式内不一致", "largest_gap": "技術形式・容量、生成AI・公開歴・同時応募", "official_url": "https://www.212photographyistanbul.com/nasil-katilirim" },
+        { "source_label": "坂出市 第61回さかいで大橋まつりフォトコンテスト 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年8月28日必着、時刻未確認", "technical_evidence": "四つ切〜六つ切（ワイド・A4可）プリントとJPGをLoGoフォームまたはCDで提出", "largest_gap": "応募資格・生成AI・過去受賞作・同時応募", "official_url": "https://www.city.sakaide.lg.jp/soshiki/sangyoukankou/sakaideoohashifoto61.html" },
+        { "source_label": "堺市 アセアンフォトコンテスト2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年8月31日23:00 日本時間", "technical_evidence": "JPEG/PNG・380万画素（2200×1600px）以上・10MB未満", "largest_gap": "応募料・生成AI・過去受賞作・同時応募", "official_url": "https://www.city.sakai.lg.jp/shisei/kokusai/aseankoryu/sakai-asean/shashinten/asean-photo-contest-2026.html" },
+        { "source_label": "鶴岡市 瀬波・あつみ温泉・笹川流れフォトコンテスト2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年11月30日23:59 日本時間", "technical_evidence": "Instagramフィード、公式フォロー、作品情報・指定2タグ", "largest_gap": "応募資格・公開アカウント・生成AI・同時応募", "official_url": "https://www.city.tsuruoka.lg.jp/shisei/shiyakusyo/infomation/atsumi/kanko/atsangyo-fotokon.html" },
+        { "source_label": "御所市観光協会 第38回御所市観光フォトコンテスト 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年12月1日〜2027年1月29日必着、時刻未確認", "technical_evidence": "四ツ切（ワイド可）またはA4のカラー単写真。入賞候補はJPEG提出", "largest_gap": "居住地・年齢・プロ／アマ、応募料、併願", "official_url": "https://www.city.gose.nara.jp/kankou/0000001582.html" },
+        { "source_label": "豊田市しもやま観光協会 しもやまフォトコンテスト #2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2027年1月15日、当日投稿・消印有効、時刻未確認", "technical_evidence": "公開Instagram・公式フォロー・指定タグ、またはA4／四ツ切プリント", "largest_gap": "国外居住者、生成AI、通常補正範囲、投稿時刻", "official_url": "https://shimoyama-photo-con.jp/" },
+        { "source_label": "会津若松市／会津若松観光ビューロー × 東京カメラ部 #会津の宝探し フォトコンテスト2026 公式委託運営ページ", "route_count": 1, "deadline_evidence": "2026年12月25日23:59 日本時間", "technical_evidence": "公開Instagram・3公式アカウントのフォロー・共通タグと部門タグ。受賞候補はRAWまたはExif元データ", "largest_gap": "生成AIの「過度」判断、応募料", "official_url": "https://tokyocameraclub.com/aizuwakamatsu/contest2026/" },
         { "source_label": "UNESCO Youth Eyes on the Silk Roads Photo Contest 2026 公式発表・ルール", "route_count": 1, "deadline_evidence": "2026年7月28日23:59、GMT+1/GMT+2表記が不一致", "technical_evidence": "JPEG・長辺1500px以上・最大20点", "largest_gap": "締切タイムゾーン・公開歴・併願", "official_url": "https://www.unesco.org/en/articles/deadline-extended-join-2026-youth-eyes-silk-roads-photo-contest?hub=74538" },
         { "source_label": "European Photography Awards 2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年7月29日、時刻未確認", "technical_evidence": "JPEG・4MB以下", "largest_gap": "権利・AI・単写真／シリーズ・料金", "official_url": "https://europeanphotoawards.com/european-photography-awards.php" },
         { "source_label": "Xposure International Photography Awards 2026 公式募集ページ", "route_count": 1, "deadline_evidence": "2026年9月20日まで延長、時刻未確認", "technical_evidence": "JPEG・長辺2700px以上・6MB以下の目安", "largest_gap": "部門別加工・発表歴・併願", "official_url": "https://awards.xposure.net/international-photography-awards/" }
@@ -304,12 +331,12 @@
       "path": "quality/queries/evidence_coverage.sql",
       "query": {
         "engine": "DuckDB",
-        "description": "4つの応募ルートJSONにある106ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
-        "executed_at": "2026-07-24T00:00:00+09:00",
+        "description": "4つの応募ルートJSONにある139ルートについて、8つの根拠状態を縦持ちにして件数を集計します。",
+        "executed_at": "2026-07-31T13:14:00+09:00",
         "language": "sql",
         "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json", "data/domestic-opportunities.json"],
-        "filters": ["verifiedAt = 2026-07-23 or 2026-07-24", "8 evidence fields per route"],
-        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全848セル"]
+        "filters": ["verifiedAt = 2026-07-23, 2026-07-24, or 2026-07-31", "8 evidence fields per route"],
+        "metric_definitions": ["evidence coverage = explicitまたはconditionalのセル数 / 全1112セル"]
       }
     },
     {
@@ -319,10 +346,10 @@
       "query": {
         "engine": "DuckDB",
         "description": "応募ルートを公式URL単位に集約し、締切と技術仕様の確認状態を一覧化します。",
-        "executed_at": "2026-07-24T00:00:00+09:00",
+        "executed_at": "2026-07-31T13:14:00+09:00",
         "language": "sql",
         "tables_used": ["data/opportunities.json", "data/worldwide-opportunities.json", "data/social-opportunities.json", "data/domestic-opportunities.json"],
-        "filters": ["verifiedAt = 2026-07-23 or 2026-07-24"]
+        "filters": ["verifiedAt = 2026-07-23, 2026-07-24, or 2026-07-31"]
       }
     },
     {
