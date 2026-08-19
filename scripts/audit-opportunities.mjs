@@ -146,6 +146,7 @@ const officialHosts = new Set([
   "www.212photographyistanbul.com",
   "www.city.gose.nara.jp",
   "shimoyama-photo-con.jp",
+  "ecodane.jp",
 ]);
 const prefectures = new Set([
   "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
@@ -177,12 +178,12 @@ const discoveryCapturePolicies = new Set([
 const discoveryWorkTypes = new Set(["single", "series"]);
 const discoveryDeviceGroups = new Set(["oppo_family", "leica"]);
 
-assert.equal(baseOpportunities.length, 16, "expected the original 16 independently selectable entry routes");
-assert.equal(worldwideOpportunities.length, 24, "expected 24 independently audited worldwide entry routes");
+assert.equal(baseOpportunities.length, 14, "expected 14 current independently selectable entry routes");
+assert.equal(worldwideOpportunities.length, 19, "expected 19 current independently audited worldwide entry routes");
 assert.equal(socialOpportunities.length, 2, "expected 2 social or curated entry routes with fixed deadlines");
-assert.equal(domesticOpportunities.length, 97, "expected 97 independently audited domestic entry routes");
+assert.equal(domesticOpportunities.length, 94, "expected 94 current independently audited domestic entry routes");
 assert.equal(discoveryChannels.length, 11, "expected 11 rolling discovery channels");
-assert.equal(opportunities.length, 139, "expected 139 independently selectable entry routes");
+assert.equal(opportunities.length, 129, "expected 129 current independently selectable entry routes");
 assert.equal(new Set(opportunities.map((item) => item.id)).size, opportunities.length, "IDs must be unique");
 assert.equal(new Set(discoveryChannels.map((item) => item.id)).size, discoveryChannels.length, "discovery channel IDs must be unique");
 assert.equal(
@@ -192,7 +193,7 @@ assert.equal(
 );
 
 for (const item of opportunities) {
-  assert.ok(["2026-07-23", "2026-07-24", "2026-07-31"].includes(item.verifiedAt), `${item.id}: verification date is stale`);
+  assert.ok(["2026-07-23", "2026-07-24", "2026-07-31", "2026-08-19"].includes(item.verifiedAt), `${item.id}: verification date is stale`);
   assert.ok(Number.isFinite(Date.parse(item.deadline)), `${item.id}: deadline is not parseable`);
   assert.ok(officialHosts.has(new URL(item.sourceUrl).host), `${item.id}: source is not on the audited official-host list`);
   assert.deepEqual(Object.keys(item.evidence).sort(), evidenceKeys.toSorted(), `${item.id}: evidence cells are incomplete`);
@@ -254,7 +255,7 @@ assert.ok(
 
 const localRoutes = domesticOpportunities.filter((item) => item.shootingPrefectures?.length);
 const coveredPrefectures = new Set(localRoutes.flatMap((item) => item.shootingPrefectures));
-assert.equal(localRoutes.length, 78, "expected 78 officially audited local shooting-area routes");
+assert.equal(localRoutes.length, 76, "expected 76 current officially audited local shooting-area routes");
 assert.equal(coveredPrefectures.size, 47, "the expanded local audit must cover all 47 distinct prefectures");
 assert.ok(
   localRoutes.every((item) => item.shotLocationRule && item.shootingPrefectures.every((prefecture) => prefectures.has(prefecture))),
@@ -279,10 +280,6 @@ assert.equal(sonyStudent?.entrantAge, "adult", "Sony Student lower age bound mus
 assert.equal(sonyStudent?.minAge, 18, "Sony Student lower age bound must be explicit");
 assert.equal(sonyStudent?.maxAge, 30, "Sony Student upper age bound must be explicit");
 
-const tifaRoutes = opportunities.filter((item) => item.id.startsWith("tifa-"));
-assert.equal(tifaRoutes.length, 2, "TIFA must keep professional and non-professional routes separate");
-assert.ok(tifaRoutes.every((item) => item.shotDateFrom === "2021-08-01"), "TIFA five-year boundary requires a date-level check");
-
 const tpotyRoutes = opportunities.filter((item) => item.id.startsWith("tpoty-"));
 assert.equal(tpotyRoutes.length, 4, "TPOTY must keep One Shot, Portfolio, Rising Talent and Young separate");
 assert.ok(tpotyRoutes.every((item) => item.deadline === "2026-10-12T22:59:00Z"), "TPOTY deadline must preserve UK-time conversion");
@@ -290,11 +287,6 @@ assert.ok(tpotyRoutes.every((item) => item.deadline === "2026-10-12T22:59:00Z"),
 const ndRoutes = opportunities.filter((item) => item.id.startsWith("nd-"));
 assert.equal(ndRoutes.length, 2, "ND Awards must keep professional and non-professional routes separate");
 assert.ok(ndRoutes.every((item) => item.minLongEdge === 1200 && item.maxLongEdge === 1200), "ND requires a 1200px long edge");
-
-const bifaRoutes = opportunities.filter((item) => item.id.startsWith("bifa-"));
-assert.equal(bifaRoutes.length, 2, "BIFA must keep professional and non-professional routes separate");
-assert.ok(bifaRoutes.every((item) => item.evidence.technical === "conflict"), "BIFA official minimum-edge conflict must remain fail-closed");
-assert.ok(bifaRoutes.every((item) => item.minLongEdge === undefined), "BIFA conflicting minimum edge must not be enforced as fact");
 
 const fapaRoutes = opportunities.filter((item) => item.id.startsWith("fapa-"));
 assert.equal(fapaRoutes.length, 2, "FAPA must keep professional and amateur routes separate");
@@ -321,16 +313,6 @@ assert.equal(apec?.requiresPublicSocial, true, "APEC Influencer Award requires p
 assert.equal(apec?.feeType, "unknown", "APEC fee must not be guessed");
 assert.equal(apec?.priorAwardPolicy, "not_allowed", "APEC excludes previously submitted contest photos");
 assert.equal(apec?.simultaneousPolicy, "not_allowed", "APEC excludes photos submitted to other contests");
-
-const jpsNonfiction = opportunities.find((item) => item.id === "jps-nonfiction-photo-award-2026");
-assert.equal(jpsNonfiction?.submissionMethod, "mail_or_in_person", "JPS Nonfiction must preserve its physical submission route");
-assert.equal(jpsNonfiction?.maxAge, 30, "JPS Nonfiction is limited to entrants aged 30 or younger");
-assert.equal(jpsNonfiction?.workType, "series", "JPS Nonfiction requires a coherent print series");
-assert.equal(jpsNonfiction?.seriesMin, 15, "JPS Nonfiction requires at least 15 prints");
-assert.equal(jpsNonfiction?.seriesMax, 30, "JPS Nonfiction allows at most 30 prints");
-assert.equal(jpsNonfiction?.priorAwardPolicy, "not_allowed", "JPS Nonfiction excludes works with another decided award");
-assert.equal(jpsNonfiction?.editPolicy, "no_composite", "JPS Nonfiction excludes processing, compositing and generative AI");
-assert.equal(jpsNonfiction?.rightsPolicy, "explicit", "JPS Nonfiction explicitly retains copyright with the photographer");
 
 const canonRoutes = domesticOpportunities.filter((item) => item.id.startsWith("canon-photo-contest-60-"));
 assert.equal(canonRoutes.length, 2, "Canon print and WEB submission routes must remain separate");
@@ -428,9 +410,15 @@ assert.equal(misakiTown?.rightsPolicy, "explicit", "Misaki Town winning-work usa
 const oshiNara = domesticOpportunities.find((item) => item.id === "oshi-nara-photo-contest-2026-spring-summer");
 assert.equal(oshiNara?.submissionMethod, "hashtag", "Oshi Nara must preserve its Instagram hashtag route");
 assert.equal(oshiNara?.requiresFollow, true, "Oshi Nara must preserve the official-account follow step");
-const nakatsu = domesticOpportunities.find((item) => item.id === "nakatsu-instagram-photo-contest-2026-july");
+const nakatsu = domesticOpportunities.find((item) => item.id === "nakatsu-instagram-photo-contest-2026-august");
 assert.deepEqual(nakatsu?.shootingPrefectures, ["大分県"], "Nakatsu must retain its Oita shooting-area gate");
 assert.equal(nakatsu?.requiresPublicSocial, true, "Nakatsu requires a public Instagram account");
+assert.equal(nakatsu?.deadline, "2026-08-31T14:59:00Z", "Nakatsu must expose the current August month-end route");
+const ibarakiNature = domesticOpportunities.find((item) => item.id === "ibaraki-natural-environment-photo-contest-2026");
+assert.deepEqual(ibarakiNature?.shootingPrefectures, ["茨城県"], "Ibaraki Nature must restore current Ibaraki shooting coverage");
+assert.equal(ibarakiNature?.deadline, "2026-10-15", "Ibaraki Nature must retain its official date-only deadline");
+assert.equal(ibarakiNature?.simultaneousPolicy, "not_allowed", "Ibaraki Nature excludes other-contest and similar works");
+assert.equal(ibarakiNature?.rightsPolicy, "explicit", "Ibaraki Nature must retain its two-year winning-work licence");
 const mugiMinami = domesticOpportunities.find((item) => item.id === "mugi-minami-photo-contest-2026");
 assert.equal(mugiMinami?.status, "expected", "Mugi-Minami starts on 2026-08-01 and must remain upcoming");
 assert.equal(mugiMinami?.submissionMethod, "platform_upload", "Mugi-Minami must retain official LINE submission");
@@ -508,21 +496,9 @@ assert.deepEqual(hachinoheWaterRoutes.find((item) => item.id.endsWith("-oraho"))
 const hashima = domesticOpportunities.find((item) => item.id === "hashima-no-miryoku-2026");
 assert.equal(hashima?.opportunityKind, "curation", "Hashima repost selection must remain a curation route");
 assert.equal(hashima?.requiresPublicSocial, true, "Hashima curation requires a public Instagram account");
-const ichikikushikino = domesticOpportunities.find((item) => item.id === "ichikikushikino-photo-contest-2026");
-assert.deepEqual(ichikikushikino?.shootingPrefectures, ["鹿児島県"], "Ichikikushikino must retain its Kagoshima shooting-area gate");
-assert.equal(ichikikushikino?.rightsPolicy, "explicit", "Ichikikushikino winning-work usage must remain visible");
-const unescoSilkRoads = worldwideOpportunities.find((item) => item.id === "unesco-youth-eyes-silk-roads-2026");
-assert.equal(unescoSilkRoads?.evidence.deadline, "conflict", "UNESCO's conflicting GMT labels must remain visible");
-assert.equal(unescoSilkRoads?.minAge, 14, "UNESCO Youth must retain its 14-year lower age");
 const xposure = worldwideOpportunities.find((item) => item.id === "xposure-international-photography-awards-2026");
 assert.equal(xposure?.feeType, "free", "Xposure official page states free entry");
 assert.equal(xposure?.rightsPolicy, "explicit", "Xposure's selected-work licence must remain visible");
-const lensculturePhotobook = worldwideOpportunities.find((item) => item.id === "lensculture-photobook-prize-2026");
-assert.equal(lensculturePhotobook?.applicantScope, "worldwide", "LensCulture Photobook must retain worldwide eligibility");
-assert.equal(lensculturePhotobook?.seriesMin, 20, "LensCulture Photobook needs at least 20 images");
-assert.equal(lensculturePhotobook?.seriesMax, 30, "LensCulture Photobook allows at most 30 images");
-assert.equal(lensculturePhotobook?.aiPolicy, "photo_origin_required", "LensCulture must exclude purely AI-generated work");
-assert.equal(lensculturePhotobook?.rightsPolicy, "explicit", "LensCulture copyright retention must remain visible");
 const chromaticRoutes = worldwideOpportunities.filter((item) => item.id.startsWith("chromatic-"));
 assert.equal(chromaticRoutes.length, 2, "Chromatic must keep professional and amateur routes separate");
 assert.deepEqual(chromaticRoutes.map((item) => item.entrantRole).sort(), ["nonprofessional", "professional"], "Chromatic must retain its professional and amateur divisions");
@@ -539,7 +515,7 @@ const monovisionsSeries = worldwideOpportunities.find((item) => item.id === "mon
 assert.equal(monovisionsSeries?.seriesMin, 2, "MonoVisions series must contain at least two images");
 assert.equal(monovisionsSeries?.seriesMax, 8, "MonoVisions series must contain at most eight images");
 const headOn = worldwideOpportunities.find((item) => item.id === "head-on-photo-awards-2026");
-assert.equal(headOn?.deadline, "2026-08-16T13:59:00Z", "Head On must retain its AEST deadline conversion");
+assert.equal(headOn?.deadline, "2026-08-23T13:59:00Z", "Head On must retain its extended Sydney deadline conversion");
 assert.equal(headOn?.applicantScope, "worldwide", "Head On explicitly accepts worldwide applicants");
 assert.equal(headOn?.categorySelectionRequired, true, "Head On must preserve its three-category selection");
 assert.equal(headOn?.aiPolicy, "photo_origin_required", "Head On excludes AI-generated images while allowing photo-origin post-production");

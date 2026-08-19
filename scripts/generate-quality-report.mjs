@@ -13,7 +13,32 @@ const [artifact, ...groups] = await Promise.all([
 ]);
 const opportunities = groups.flat();
 const domestic = groups.at(-1);
-const evidenceRows = artifact.snapshot.datasets.evidence_states;
+const evidenceStateCounts = new Map();
+for (const opportunity of opportunities) {
+  for (const state of Object.values(opportunity.evidence ?? {})) {
+    evidenceStateCounts.set(state, (evidenceStateCounts.get(state) ?? 0) + 1);
+  }
+}
+const evidenceMetadata = new Map(
+  artifact.snapshot.datasets.evidence_states.map((row) => [row.evidence_state, row]),
+);
+const evidenceStateOrder = [
+  ...artifact.snapshot.datasets.evidence_states.map((row) => row.evidence_state),
+  ...[...evidenceStateCounts.keys()].filter((state) => !evidenceMetadata.has(state)),
+];
+const totalEvidenceCells = [...evidenceStateCounts.values()].reduce((sum, count) => sum + count, 0);
+const evidenceRows = evidenceStateOrder.map((state, index) => {
+  const metadata = evidenceMetadata.get(state) ?? {};
+  const cellCount = evidenceStateCounts.get(state) ?? 0;
+  return {
+    evidence_state: state,
+    state_label: metadata.state_label ?? state,
+    cell_count: cellCount,
+    share_percent: Number((cellCount / totalEvidenceCells * 100).toFixed(1)),
+    screen_treatment: metadata.screen_treatment ?? "要確認",
+    rank: metadata.rank ?? index + 1,
+  };
+});
 const localRoutes = domestic.filter((item) => item.shootingPrefectures?.length);
 const coveredPrefectures = [...new Set(localRoutes.flatMap((item) => item.shootingPrefectures))];
 const totalCells = evidenceRows.reduce((sum, row) => sum + row.cell_count, 0);
@@ -24,18 +49,10 @@ const coveragePercent = Number((coveredCells / totalCells * 100).toFixed(1));
 const remainingPrefectureCount = 47 - coveredPrefectures.length;
 const latestAuditRouteIds = new Set([
   "nipponkodo-bonphoto-2026",
-  "yumenoshima-photo-contest-2026",
-  "kanazawa-matsuri-fireworks-photo-contest-52",
-  "monovisions-single-2027",
-  "graphis-photography-awards-2027",
-  "form-photo-award-unseen-2027",
-  "sakai-asean-photo-contest-2026",
-  "nihonkai-parkline-photo-contest-2026",
+  "hipa-determination-2026",
   "head-on-photo-awards-2026",
-  "international-212-photography-competition-2026",
-  "gose-tourism-photo-contest-38",
-  "shimoyama-photo-contest-2026",
-  "aizuwakamatsu-takara-sagashi-photo-contest-2026",
+  "nakatsu-instagram-photo-contest-2026-august",
+  "ibaraki-natural-environment-photo-contest-2026",
 ]);
 const latestAuditRoutes = opportunities.filter((item) => latestAuditRouteIds.has(item.id));
 const coverageNote = remainingPrefectureCount === 0
@@ -135,12 +152,12 @@ const html = `<!doctype html>
 </head>
 <body>
   <header>
-    <p>DATA QUALITY / 2026-07-31</p>
+    <p>DATA QUALITY / 2026-08-19</p>
     <h1>写真コンテストものさし 精度監査</h1>
     <div><span>地方の小規模公募を、公式要項の確認状態ごと記録する。</span><span><a href="/">ものさしへ戻る</a></span></div>
   </header>
   <main>
-    <p class="lede">夜間の公式再確認で、Instagram投稿型2件と郵送型1件を追加しました。日本香堂の盆フォト、夢の島熱帯植物館、横浜市金沢区の募集について、応募資格、発表歴、加工、権利を分けて記録し、書かれていない条件は「要確認」のまま残しています。</p>
+    <p class="lede">期限超過10ルートを公式情報で再確認し、終了済み9ルートを現行一覧から外しました。中津市は8月回へ更新し、茨城県は10月15日締切の現行公募へ差し替えています。公式に書かれていない条件は「要確認」のまま残しています。</p>
     <div class="metrics" aria-label="監査指標">
       <div><b>${opportunities.length}</b><span>固定締切の応募ルート</span></div>
       <div><b>${domestic.length}</b><span>国内ルート</span></div>
@@ -161,7 +178,7 @@ const html = `<!doctype html>
     </section>
 
     <section>
-      <h2>夜間公式再確認で追加した${latestAuditRoutes.length}ルート</h2>
+      <h2>今回の期限監査で確認した${latestAuditRoutes.length}ルート</h2>
       <div class="table-wrap">
         <table>
           <thead><tr><th>募集</th><th>撮影県／主催地域</th><th>締切</th><th>撮影地・応募範囲</th><th>権利条項</th></tr></thead>
