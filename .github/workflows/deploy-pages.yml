@@ -31,6 +31,10 @@ jobs:
         uses: actions/configure-pages@v5
 
       - name: Install dependencies and build
+        # github.io のサブパス配信（/photo-contest-monosashi/）向けに基底パスを固定する。
+        # カスタムドメインへ移す時はこの env を外す（next.config.ts 参照）。
+        env:
+          NEXT_PUBLIC_BASE_PATH: /photo-contest-monosashi
         run: npm ci && npm run build
 
       - name: Upload artifact
