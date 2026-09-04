@@ -7,15 +7,15 @@
   --ink: #22211e;
   --ink-soft: #625f56;
   --line: #bfb39d;
-  --line-dark: #756c5e;
+  --line-dark: #6f6759;
   --safe: #b5472f;
   --safe-dark: #83311f;
-  --amber: #ef9f57;
+  --amber: #a0540f;
   --darkroom: #191918;
   --darkroom-soft: #2d2b28;
   --green: #42694f;
   --blue: #416172;
-  --yellow: #a96d19;
+  --yellow: #915d15;
   --red: #943e31;
   --shadow: 0 22px 60px rgba(44, 34, 18, 0.13);
 }
@@ -112,6 +112,12 @@ summary:focus-visible {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 9px;
   letter-spacing: 0.1em;
+}
+
+.brand small.site-version {
+  border-color: var(--line-dark);
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
 }
 
 .ruler-mark {
@@ -1039,14 +1045,47 @@ footer { display: grid; align-items: center; padding: 36px max(20px, calc((100vw
   .footer-copy { grid-column: 1 / -1; grid-row: 2; }
 }
 
+.nav-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  border: 1px solid var(--line-dark);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.nav-toggle span { display: block; width: 18px; height: 1.5px; background: var(--ink); }
+
 @media (max-width: 720px) {
   html { scroll-padding-top: 68px; }
-  .site-header { min-height: 60px; padding: 7px 15px; }
+  .site-header { min-height: 60px; padding: 7px 15px; position: relative; }
   .brand { gap: 7px; font-size: 12px; }
   .ruler-mark { width: 38px; }
   .brand small { display: none; }
+  .nav-toggle { display: flex; }
   .site-header nav { gap: 4px; }
-  .site-header nav a { display: none; }
+  .site-header nav a {
+    display: none;
+    position: absolute;
+    left: 0;
+    width: 100%;
+    padding: 14px 15px;
+    border-top: 1px solid var(--line-dark);
+    background: var(--paper-light);
+    font-size: 13px;
+  }
+  .site-header nav[data-open="true"] a {
+    display: block;
+  }
+  .site-header nav a:nth-child(1) { top: 100%; z-index: 41; }
+  .site-header nav a:nth-child(2) { top: calc(100% + 45px); z-index: 41; }
+  .site-header nav a:nth-child(3) { top: calc(100% + 90px); z-index: 41; }
+  .site-header nav a:nth-child(4) { top: calc(100% + 135px); z-index: 41; border-bottom: 1px solid var(--line-dark); }
   .site-header nav button { font-size: 10px; }
   .hero { width: min(100% - 28px, 620px); gap: 42px; padding: 48px 0 72px; }
   .hero h1 { font-size: clamp(37px, 11vw, 53px); }

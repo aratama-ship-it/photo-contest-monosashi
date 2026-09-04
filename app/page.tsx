@@ -217,6 +217,10 @@ const trends = trendData as Trend[];
 const PROFILE_KEY = "photo-monosashi-profile-v2";
 const SAVED_KEY = "photo-monosashi-saved-v1";
 const MARKET_KEY = "photo-monosashi-market-v1";
+const SITE_VERSION = (() => {
+  const d = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Tokyo" }).format(new Date());
+  return `v${d}`;
+})();
 
 const prefectures = [
   "北海道",
@@ -913,6 +917,7 @@ export default function Home() {
   const [measured, setMeasured] = useState(false);
   const [saved, setSaved] = useState<string[]>([]);
   const [savedOpen, setSavedOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [marketFilter, setMarketFilter] = useState<MarketFilter>("all");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1131,16 +1136,27 @@ export default function Home() {
           <span className="ruler-mark" aria-hidden="true"><i /><i /><i /><i /><i /></span>
           <span>写真コンテストものさし</span>
           <small>BETA</small>
+          <small className="site-version" aria-hidden="true">{SITE_VERSION}</small>
         </a>
-        <nav aria-label="メインナビゲーション">
-          <a href="#measure">この写真を測る</a>
-          <a href="#local-coverage">地方公募の網羅度</a>
-          <a href="#channels">フォーム以外の入口</a>
-          <a href="#trends">過去作の手掛かり</a>
+        <nav id="site-nav-mobile" aria-label="メインナビゲーション" data-open={navOpen ? "true" : "false"}>
+          <a href="#measure" onClick={() => setNavOpen(false)}>この写真を測る</a>
+          <a href="#local-coverage" onClick={() => setNavOpen(false)}>地方公募の網羅度</a>
+          <a href="#channels" onClick={() => setNavOpen(false)}>フォーム以外の入口</a>
+          <a href="#trends" onClick={() => setNavOpen(false)}>過去作の手掛かり</a>
           <button type="button" onClick={() => setSavedOpen(true)}>
             あとで見る <span>{saved.length}</span>
           </button>
         </nav>
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-expanded={navOpen}
+          aria-controls="site-nav-mobile"
+          aria-label={navOpen ? "メニューを閉じる" : "メニューを開く"}
+          onClick={() => setNavOpen((value) => !value)}
+        >
+          <span /><span /><span />
+        </button>
       </header>
 
       <section className="hero" id="top">

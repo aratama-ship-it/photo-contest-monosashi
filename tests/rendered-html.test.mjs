@@ -267,7 +267,7 @@ test("seed data keeps application routes and evidence auditable", async () => {
   assert.match(page, /social_allowed/);
   assert.match(page, /世界各国から応募可/);
   assert.match(page, /フォーム以外の入口/);
-  assert.match(page, /\/quality-report\.html/);
+  assert.match(page, /href="quality-report\.html"/);
   assert.match(layout, /metadataBase/);
   assert.doesNotMatch(layout, /next\/headers/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
