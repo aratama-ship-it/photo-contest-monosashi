@@ -1744,7 +1744,7 @@ export default function Home() {
           <p>写真は送信・保存しません。カルテと「あとで見る」のIDだけをこの端末に保存します。</p>
         </div>
         <nav className="footer-links" aria-label="補足情報">
-          <a href="/quality-report.html" target="_blank" rel="noreferrer">精度監査レポート ↗</a>
+          <a href="quality-report.html" target="_blank" rel="noreferrer">精度監査レポート ↗</a>
           <a href="#method">調べ方と判定の限界</a>
         </nav>
       </footer>
