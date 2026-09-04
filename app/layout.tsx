@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title,
   description,
   applicationName: "写真コンテストものさし",
+  icons: { icon: `${siteOrigin}/favicon.svg`, apple: `${siteOrigin}/apple-touch-icon.png` },
   openGraph: {
     type: "website",
     locale: "ja_JP",
